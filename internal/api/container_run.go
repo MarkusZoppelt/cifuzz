@@ -102,3 +102,44 @@ func (client *APIClient) PostContainerRemoteRun(image string, project string, fu
 
 	return &response, nil
 }
+
+type ContainerRemoteRunStatus struct {
+	Run ContainerRemoteRun `json:"run"`
+}
+
+type ContainerRemoteRun struct {
+	Nid    string `json:"nid"`
+	Status string `json:"status"`
+}
+
+// GetContainerRemoteRunStatus gets the status of a container run from the CI
+// Sense API at /v3/runs/{run_nid}.
+func (client *APIClient) GetContainerRemoteRunStatus(runNID string, token string) (*ContainerRemoteRunStatus, error) {
+	url, err := url.JoinPath("/v3", "runs", runNID)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	resp, err := client.sendRequest("GET", url, nil, token)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, responseToAPIError(resp)
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	var response ContainerRemoteRunStatus
+	err = json.Unmarshal(respBody, &response)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return &response, nil
+}
