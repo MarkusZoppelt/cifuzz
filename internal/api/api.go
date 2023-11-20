@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"regexp"
 	"runtime"
 	"strings"
 	"syscall"
@@ -146,17 +147,29 @@ func ConvertProjectNameForUseWithAPIV1V2(projectName string) string {
 	return projectName
 }
 
-// ConvertProjectNameForUseWithAPIV3 converts a project name to the v3 API
-// format. The API format is <project-name>, where <project-name> is URL
-// unescaped.
-func ConvertProjectNameForUseWithAPIV3(projectName string) (string, error) {
-	projectName = strings.TrimPrefix(projectName, "projects/")
-
+// ProjectNameToNID converts a project name to the v3 API project NID. The
+// project NID format is 'prj-XXXXXXXXXXXX', where 'X' is any alphanumeric.
+func ProjectNameToNID(projectName string) (string, error) {
 	projectName, err := url.QueryUnescape(projectName)
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
-	return projectName, nil
+	projectName = strings.TrimPrefix(projectName, "projects/")
+
+	matchExternalId := regexp.MustCompile("^.*-([0-9a-f]{8})$")
+	matchNid := regexp.MustCompile("^[0-9a-zA-Z\\-]*$")
+
+	var nid string
+	if matchExternalId.MatchString(projectName) {
+		nid = "prj-0000" + matchExternalId.FindStringSubmatch(projectName)[1]
+	} else if matchNid.MatchString(projectName) {
+		nid = projectName
+	} else {
+		return "", errors.Wrapf(errors.New("invalid project ID"),
+			"project ID %s is not a valid nid or external ID", projectName)
+	}
+
+	return nid, nil
 }
 
 func (client *APIClient) UploadBundle(path string, projectName string, token string) (*Artifact, error) {
