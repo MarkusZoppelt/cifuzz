@@ -28,8 +28,8 @@ func (e NoValidTokenError) Unwrap() error {
 	return e.err
 }
 
-// GetToken returns the API access token for the given server.
-func GetToken(server string) (string, error) {
+// getToken returns the API access token for the given server.
+func getToken(server string) (string, error) {
 	// Try the environment variable
 	token := os.Getenv("CIFUZZ_API_TOKEN")
 	if token != "" {
@@ -42,7 +42,7 @@ func GetToken(server string) (string, error) {
 }
 
 func GetValidToken(server string) (string, error) {
-	token, err := GetToken(server)
+	token, err := getToken(server)
 	if err != nil {
 		return "", err
 	}
@@ -52,7 +52,7 @@ func GetValidToken(server string) (string, error) {
 		return "", err
 	}
 	if !isValid {
-		return "", &NoValidTokenError{errors.New("Please log in with a valid API access token")}
+		return "", &NoValidTokenError{errors.New("No valid API access token found")}
 	}
 	return token, nil
 }
@@ -110,7 +110,7 @@ func StoreToken(server, token string) error {
 }
 
 func EnsureValidToken(server string) (string, error) {
-	token, err := GetToken(server)
+	token, err := getToken(server)
 	if err != nil {
 		return "", err
 	}
