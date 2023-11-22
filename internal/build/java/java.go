@@ -39,3 +39,13 @@ func TestDirs(projectDir string, buildSystem string) ([]string, error) {
 	}
 	return []string{filepath.Join(projectDir, "src", "test")}, nil
 }
+
+func RootDirectory(projectDir string, buildSystem string) (string, error) {
+	if buildSystem == config.BuildSystemGradle {
+		return gradle.GetRootDirectory(projectDir)
+	} else if buildSystem == config.BuildSystemMaven {
+		return maven.GetRootDirectory(projectDir)
+	}
+
+	return projectDir, nil
+}

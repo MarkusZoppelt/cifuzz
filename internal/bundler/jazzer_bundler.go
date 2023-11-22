@@ -86,15 +86,11 @@ func (b *jazzerBundler) assembleArtifacts(fuzzTests []string, targetMethods []st
 	if err != nil {
 		return nil, err
 	}
-
 	// In case of multi-module projects the project root directory is
 	// determined by the build system.
-	rootDir := b.opts.ProjectDir
-	if b.opts.BuildSystem == config.BuildSystemGradle {
-		rootDir, err = gradle.GetRootDirectory(b.opts.ProjectDir)
-		if err != nil {
-			return nil, err
-		}
+	rootDir, err := javaBuild.RootDirectory(b.opts.ProjectDir, b.opts.BuildSystem)
+	if err != nil {
+		return nil, err
 	}
 	sourceMap, err := sourcemap.CreateSourceMap(rootDir, append(sourceDirs, testDirs...))
 	if err != nil {
