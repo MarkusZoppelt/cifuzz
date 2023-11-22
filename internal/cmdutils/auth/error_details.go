@@ -6,7 +6,6 @@ import (
 	"code-intelligence.com/cifuzz/internal/api"
 	"code-intelligence.com/cifuzz/pkg/finding"
 	"code-intelligence.com/cifuzz/pkg/log"
-	"code-intelligence.com/cifuzz/pkg/messaging"
 )
 
 func getErrorDetailsAndToken(server string) ([]*finding.ErrorDetails, string, error) {
@@ -32,7 +31,6 @@ func TryGetErrorDetailsAndToken(server string) ([]*finding.ErrorDetails, string,
 	var noValidTokenError *NoValidTokenError
 	if errors.As(err, &noValidTokenError) {
 		// This error is returned by GetValidToken if there is no valid token.
-		log.Infof(messaging.UsageWarning())
 		log.Warn("Findings are not supplemented with error details from CI Sense")
 		return nil, "", nil
 	}
