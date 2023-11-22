@@ -20,6 +20,7 @@ import (
 var (
 	classpathRegex         = regexp.MustCompile("(?m)^cifuzz.test.classpath=(?P<classpath>.*)$")
 	buildDirRegex          = regexp.MustCompile("(?m)^cifuzz.buildDir=(?P<buildDir>.*)$")
+	rootDirRegex           = regexp.MustCompile("(?m)^cifuzz.rootDir=(?P<rootDir>.*)$")
 	testSourceFoldersRegex = regexp.MustCompile("(?m)^cifuzz.test.source-folders=(?P<testSourceFolders>.*)$")
 	mainSourceFoldersRegex = regexp.MustCompile("(?m)^cifuzz.main.source-folders=(?P<mainSourceFolders>.*)$")
 )
@@ -140,6 +141,22 @@ func GetBuildDirectory(projectDir string) (string, error) {
 	buildDir := strings.TrimSpace(result[1])
 
 	return buildDir, nil
+}
+
+func GetRootDirectory(projectDir string) (string, error) {
+	cmd := runMaven(projectDir, []string{"validate", "-q", "-DcifuzzPrintRootDir"})
+	output, err := cmd.Output()
+	if err != nil {
+		return "", cmdutils.WrapExecError(errors.WithStack(err), cmd)
+	}
+
+	result := rootDirRegex.FindStringSubmatch(string(output))
+	if result == nil {
+		return "", errors.New("Unable to parse maven root directory")
+	}
+	rootDir := strings.TrimSpace(result[1])
+
+	return rootDir, nil
 }
 
 // GetTestDir returns the value of <testSourceDirectory> for the fuzz project
