@@ -76,6 +76,26 @@ jobs:
           files: cifuzz_installer_*
           fail_on_unmatched_files: true
 
+  upload_portal:
+    name: Upload release to download portal
+    runs-on: ubuntu-latest
+    needs: [version, installer, create_release]
+    if: needs.version.outputs.published == 'true'
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: cifuzz_installer
+
+      - uses: LanceMcCarthy/Action-AzureBlobUpload@v2
+        name: Uploading installer to azure blob storage
+        with:
+          connection_string: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+          container_name: ${{ vars.AZURE_STORAGE_CONTAINER }}
+          destination_folder: releases/${{ needs.version.outputs.tag }}
+          source_folder: .
+          fail_if_source_empty: true
+
   error_notification:
     name: Error Notification
     runs-on: ubuntu-latest
