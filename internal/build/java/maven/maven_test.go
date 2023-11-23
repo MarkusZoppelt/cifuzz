@@ -13,6 +13,7 @@ import (
 
 func Test_GetTestDir(t *testing.T) {
 	projectDir := shared.CopyTestdataDir(t, "maven")
+	t.Logf("Project dir: %s", projectDir)
 
 	testDir, err := GetTestDir(projectDir)
 	require.NoError(t, err)
