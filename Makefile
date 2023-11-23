@@ -1,6 +1,7 @@
 current_os :=
 label_os :=
 bin_ext :=
+installer_suffix :=
 
 # Force PowerShell on Windows. sh.exe on Windows GH Actions runners is using a different PATH with incompatible tools.
 ifeq ($(OS),Windows_NT)
@@ -13,6 +14,7 @@ ifeq ($(OS),Windows_NT)
 	label_os = windows
 	bin_ext = .exe
 	RM = rm -r -force
+	installer_suffix = _unsigned
 else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Linux)
@@ -104,7 +106,7 @@ install/coverage:
 .PHONY: installer
 installer:
 	go run tools/builder/builder.go --version $(version)
-	go build -tags installer -o $(installer_base_path)_$(label_os)_amd64$(bin_ext) cmd/installer/installer.go
+	go build -tags installer -o $(installer_base_path)_$(label_os)_amd64$(installer_suffix)$(bin_ext) cmd/installer/installer.go
 	$(RM) cmd/installer/build
 
 .PHONY: installer/darwin-arm64
