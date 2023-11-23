@@ -93,7 +93,7 @@ jobs:
           connection_string: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
           container_name: ${{ vars.AZURE_STORAGE_CONTAINER }}
           destination_folder: releases/${{ needs.version.outputs.tag }}
-          source_folder: .
+          source_folder: ./
           fail_if_source_empty: true
 
   error_notification:
