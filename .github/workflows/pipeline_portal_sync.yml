@@ -2,7 +2,10 @@ name: Sync releases to download portal
 
 on:
   release:
-    types: [edited]
+    types:
+      - edited
+      - published
+      - released
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -14,6 +17,8 @@ jobs:
   upload:
     name: Sync Download Portal
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: robinraju/release-downloader@v1.8
         name: Download installer from release
