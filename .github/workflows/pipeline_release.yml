@@ -86,6 +86,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: cifuzz_installer
+          path: installer
 
       - uses: LanceMcCarthy/Action-AzureBlobUpload@v2
         name: Uploading installer to azure blob storage
@@ -93,7 +94,7 @@ jobs:
           connection_string: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
           container_name: ${{ vars.AZURE_STORAGE_CONTAINER }}
           destination_folder: releases/${{ needs.version.outputs.tag }}
-          source_folder: ./
+          source_folder: installer
           fail_if_source_empty: true
 
   error_notification:
