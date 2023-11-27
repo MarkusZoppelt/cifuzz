@@ -19,6 +19,7 @@ import (
 	createCmd "code-intelligence.com/cifuzz/internal/cmd/create"
 	executeCmd "code-intelligence.com/cifuzz/internal/cmd/execute"
 	findingCmd "code-intelligence.com/cifuzz/internal/cmd/finding"
+	goCmd "code-intelligence.com/cifuzz/internal/cmd/go"
 	initCmd "code-intelligence.com/cifuzz/internal/cmd/init"
 	integrateCmd "code-intelligence.com/cifuzz/internal/cmd/integrate"
 	loginCmd "code-intelligence.com/cifuzz/internal/cmd/login"
@@ -103,6 +104,7 @@ func New() (*cobra.Command, error) {
 	rootCmd.AddCommand(containerCmd.New())
 	rootCmd.AddCommand(createCmd.New())
 	rootCmd.AddCommand(runCmd.New())
+	rootCmd.AddCommand(goCmd.New())
 	rootCmd.AddCommand(remoteRunCmd.New())
 	rootCmd.AddCommand(reloadCmd.New())
 	rootCmd.AddCommand(bundleCmd.New())
