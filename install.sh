@@ -9,7 +9,7 @@ case $(uname -s) in
     INSTALLER="cifuzz_installer_linux_amd64" ;;
 
   Windows*|MINGW*|MSYS*|CYGWIN*)
-    INSTALLER="cifuzz_installer_windows_amd64.exe" ;;
+    INSTALLER="cifuzz_installer_windows_amd64_unsigned.exe" ;;
 
   Darwin*)
     if [ "$(uname -m)" = 'arm64' ]; then
