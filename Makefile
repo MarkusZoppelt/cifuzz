@@ -39,8 +39,8 @@ project := "code-intelligence.com/cifuzz"
 # make version=1.0.0-dev [target]
 version = dev
 
-# Set IMAGE_ID to ghcr.io/codeintelligencetesting/cifuzz if it's not set
-image_id ?= ghcr.io/codeintelligencetesting/cifuzz
+# Set IMAGE_ID to cifuzz if it's not set
+image_id ?= cifuzz
 
 # Set IMAGE_TAG to IMAGE_ID:version
 image_tag ?= $(image_id):$(version)
@@ -285,15 +285,6 @@ build-container-image: build/linux
 ifneq ($(current_os),windows)
 	docker build --platform linux/amd64 -f docker/cifuzz-base/Dockerfile -t $(image_tag) .
 endif
-
-push-container-image: build-container-image
-	# Exit if GITHUB_TOKEN or GITHUB_USER are not set
-	if [ -z "${GITHUB_TOKEN}" ] || [ -z "${GITHUB_USER}" ]; then \
-		echo "GITHUB_TOKEN or GITHUB_USER not set"; \
-		exit 1; \
-	fi
-	echo "${GITHUB_TOKEN}" | docker login ghcr.io -u "${GITHUB_USER}" --password-stdin
-	docker push "$(image_tag)"
 
 .PHONY: build-llvm-test-container-image
 build-llvm-test-container-image: export DOCKER_BUILDKIT = 1
