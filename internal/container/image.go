@@ -10,6 +10,7 @@ import (
 	"text/template"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/registry"
 	"github.com/otiai10/copy"
 	"github.com/pkg/errors"
 
@@ -40,8 +41,8 @@ func BuildImageFromBundle(bundlePath string) (string, error) {
 }
 
 // UploadImage uploads an image to a registry.
-func UploadImage(imageID string, credentials api.RegistryAuth, registry string) error {
-	log.Debugf("Start uploading image %s to %s", imageID, registry)
+func UploadImage(imageID string, regConf *api.RegistryConfig, imageName string) error {
+	log.Debugf("Start uploading image %s to %s", imageID, regConf.URL)
 
 	dockerClient, err := GetDockerClient()
 	if err != nil {
@@ -50,7 +51,7 @@ func UploadImage(imageID string, credentials api.RegistryAuth, registry string) 
 	// TODO: make the building/pushing cancellable with SIGnals
 	ctx := context.Background()
 
-	remoteTag := fmt.Sprintf("%s:%s", strings.ToLower(registry), imageID)
+	remoteTag := fmt.Sprintf("%s:%s", strings.ToLower(imageName), imageID)
 	log.Debugf("Tag used for upload: %s", remoteTag)
 
 	err = dockerClient.ImageTag(ctx, imageID, remoteTag)
@@ -58,9 +59,9 @@ func UploadImage(imageID string, credentials api.RegistryAuth, registry string) 
 		return errors.WithStack(err)
 	}
 
-	regAuth, err := RegistryAuth(ra.XRegistryAuth.Username, ra.XRegistryAuth.Password)
+	regAuth, err := registry.EncodeAuthConfig(*regConf.Auth)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	opts := types.ImagePushOptions{RegistryAuth: regAuth}

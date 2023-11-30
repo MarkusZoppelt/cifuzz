@@ -172,12 +172,19 @@ func (c *containerRemoteRunCmd) run() error {
 
 	buildPrinter.StopOnSuccess(log.ContainerBuildInProgressSuccessMsg, false)
 
-	err = container.UploadImage(imageID, c.opts.Registry)
+	registryCredentials, err := api.APIRequest[api.RegistryConfig](c.apiClient, "GET", nil, token, "v2", "docker_registry", "authentication")
 	if err != nil {
 		return err
 	}
 
-	imageID = c.opts.Registry + ":" + imageID
+	imageName := fmt.Sprintf("%s/cifuzz/%s", registryCredentials.URL, c.opts.Project)
+
+	err = container.UploadImage(imageID, registryCredentials, imageName)
+	if err != nil {
+		return err
+	}
+
+	imageID = fmt.Sprintf("%s:%s", imageName, imageID)
 	response, err := c.apiClient.PostContainerRemoteRun(imageID, c.opts.Project, c.opts.FuzzTests, token)
 	if err != nil {
 		return err
