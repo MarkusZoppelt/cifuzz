@@ -29,10 +29,10 @@ func TestIntegration_Version(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = builder.BuildCIFuzz()
+	cifuzz := filepath.Join(testDir, "bin", "cifuzz")
+	err = builder.BuildCIFuzz(CIFuzzExecutablePath(filepath.Dir(cifuzz)))
 	require.NoError(t, err)
 
-	cifuzz := filepath.Join(testDir, "bin", "cifuzz")
 	cmd := exec.Command(cifuzz, "--version")
 	_, cmd.Env = testutil.SetupCoverage(t, os.Environ(), "integration")
 	require.NoError(t, err)

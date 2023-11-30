@@ -204,7 +204,15 @@ func (i *CIFuzzBuilder) BuildCIFuzzAndDeps() error {
 		return err
 	}
 
-	err = i.BuildCIFuzz()
+	err = i.BuildCIFuzz(CIFuzzExecutablePath(i.binDir()))
+	if err != nil {
+		return err
+	}
+
+	// build linux executable, which is used inside docker containers
+	i.GOOS = "linux"
+	i.GOARCH = "amd64"
+	err = i.BuildCIFuzz(filepath.Join(i.binDir(), "cifuzz_linux"))
 	if err != nil {
 		return err
 	}
@@ -384,7 +392,7 @@ func (i *CIFuzzBuilder) BuildListFuzzTestsTool() error {
 	return nil
 }
 
-func (i *CIFuzzBuilder) BuildCIFuzz() error {
+func (i *CIFuzzBuilder) BuildCIFuzz(targetName string) error {
 	var err error
 	err = i.Lock()
 	if err != nil {
@@ -408,7 +416,7 @@ func (i *CIFuzzBuilder) BuildCIFuzz() error {
 	args := []string{
 		"build",
 		"-o",
-		CIFuzzExecutablePath(i.binDir()),
+		targetName,
 		ldFlags,
 	}
 
