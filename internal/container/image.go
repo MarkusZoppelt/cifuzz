@@ -13,6 +13,7 @@ import (
 	"github.com/otiai10/copy"
 	"github.com/pkg/errors"
 
+	"code-intelligence.com/cifuzz/internal/api"
 	"code-intelligence.com/cifuzz/internal/bundler/archive"
 	"code-intelligence.com/cifuzz/pkg/log"
 	"code-intelligence.com/cifuzz/pkg/runfiles"
@@ -39,7 +40,7 @@ func BuildImageFromBundle(bundlePath string) (string, error) {
 }
 
 // UploadImage uploads an image to a registry.
-func UploadImage(imageID string, registry string) error {
+func UploadImage(imageID string, credentials api.RegistryAuth, registry string) error {
 	log.Debugf("Start uploading image %s to %s", imageID, registry)
 
 	dockerClient, err := GetDockerClient()
@@ -57,7 +58,7 @@ func UploadImage(imageID string, registry string) error {
 		return errors.WithStack(err)
 	}
 
-	regAuth, err := RegistryAuth(registry)
+	regAuth, err := RegistryAuth(ra.XRegistryAuth.Username, ra.XRegistryAuth.Password)
 	if err != nil {
 		return err
 	}
