@@ -1,8 +1,6 @@
-FROM {{ .CIFuzzImage }} AS cifuzz-cli
-
 FROM {{ .Base }}
 
-COPY --from=cifuzz-cli /bin/cifuzz /bin/cifuzz
+COPY cifuzz_linux /bin/cifuzz
 
 COPY . /cifuzz/.
 WORKDIR /cifuzz

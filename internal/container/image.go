@@ -14,12 +14,10 @@ import (
 	"github.com/pkg/errors"
 
 	"code-intelligence.com/cifuzz/internal/bundler/archive"
-	"code-intelligence.com/cifuzz/internal/version"
 	"code-intelligence.com/cifuzz/pkg/log"
+	"code-intelligence.com/cifuzz/pkg/runfiles"
 	"code-intelligence.com/cifuzz/util/fileutil"
 )
-
-const cifuzzImageBase = "ghcr.io/codeintelligencetesting/cifuzz"
 
 //go:embed ensure-cifuzz.sh
 var ensureCifuzzScript string
@@ -28,8 +26,7 @@ var ensureCifuzzScript string
 var dockerfileTemplate string
 
 type dockerfileConfig struct {
-	CIFuzzImage string
-	Base        string
+	Base string
 }
 
 // BuildImageFromBundle creates an image based on an existing bundle.
@@ -103,7 +100,7 @@ func prepareBuildContext(bundlePath string) (string, error) {
 
 	// add additional files needed for the image
 	// eg. build instructions and cifuzz executables
-	err = createDockerfile(filepath.Join(buildContextDir, "Dockerfile"), metadata.Docker)
+	err = createDockerfile(buildContextDir, metadata.Docker)
 	if err != nil {
 		return "", err
 	}
@@ -176,26 +173,34 @@ func CreateImageTar(buildContextDir string) (*os.File, error) {
 	return file, nil
 }
 
-func createDockerfile(path string, baseImage string) error {
-	cifuzzImage := cifuzzImageBase + ":" + version.Version
+func createDockerfile(buildContextDir string, baseImage string) error {
+	// copy cifuzz linux executable to buildContextDir
+	cifuzzPath, err := runfiles.Finder.CIFuzzLinuxExecutablePath()
+	if err != nil {
+		return err
+	}
+	err = copy.Copy(cifuzzPath, filepath.Join(buildContextDir, "cifuzz_linux"))
+	if err != nil {
+		return errors.WithStack(err)
+	}
 
+	// open Dockerfile
+	dockerFilePath := filepath.Join(buildContextDir, "Dockerfile")
+	dockerfile, err := os.OpenFile(dockerFilePath, os.O_WRONLY|os.O_CREATE, 0o644)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	defer dockerfile.Close()
+
+	// write Dockerfile using base image
 	dockerConfig := dockerfileConfig{
-		CIFuzzImage: cifuzzImage,
-		Base:        baseImage,
+		Base: baseImage,
 	}
 	tmpl, err := template.New("Dockerfile").Parse(dockerfileTemplate)
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	dockerfile, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0o644)
-	if err != nil {
-		return errors.WithStack(err)
-	}
 	err = tmpl.Execute(dockerfile, dockerConfig)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	err = dockerfile.Close()
 	if err != nil {
 		return errors.WithStack(err)
 	}
