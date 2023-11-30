@@ -28,6 +28,10 @@ func (f RunfilesFinderImpl) CIFuzzIncludePath() (string, error) {
 	return f.findFollowSymlinks("include")
 }
 
+func (f RunfilesFinderImpl) CIFuzzLinuxExecutablePath() (string, error) {
+	return f.findFollowSymlinks("bin/cifuzz_linux")
+}
+
 func (f RunfilesFinderImpl) ClangPath() (string, error) {
 	path, err := f.llvmToolPath("clang")
 	return path, errors.WithStack(err)

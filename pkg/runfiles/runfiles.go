@@ -10,6 +10,7 @@ import (
 type RunfilesFinder interface {
 	BazelPath() (string, error)
 	CIFuzzIncludePath() (string, error)
+	CIFuzzLinuxExecutablePath() (string, error)
 	ClangPath() (string, error)
 	CMakePath() (string, error)
 	CMakePresetsPath() (string, error)

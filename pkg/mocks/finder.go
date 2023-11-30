@@ -22,6 +22,11 @@ func (m *RunfilesFinderMock) CIFuzzIncludePath() (string, error) {
 	return args.String(0), args.Error(1)
 }
 
+func (m *RunfilesFinderMock) CIFuzzLinuxExecutablePath() (string, error) {
+	args := m.Called()
+	return args.String(0), args.Error(1)
+}
+
 func (m *RunfilesFinderMock) ClangPath() (string, error) {
 	args := m.Called()
 	return args.String(0), args.Error(1)
