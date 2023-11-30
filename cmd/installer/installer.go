@@ -252,9 +252,9 @@ func installCIFuzz(installDir string) error {
 
 func extractEmbeddedFiles(files *embed.FS, installDir string) error {
 	// List of files which have to be made executable
-	cifuzzExecutable := filepath.Join("bin", "cifuzz")
 	executableFiles := []string{
-		cifuzzExecutable,
+		filepath.Join("bin", "cifuzz"),
+		filepath.Join("bin", "cifuzz_linux"),
 		filepath.Join("bin", "minijail0"),
 		filepath.Join("lib", "process_wrapper"),
 	}
