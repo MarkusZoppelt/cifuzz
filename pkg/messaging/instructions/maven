@@ -1,5 +1,5 @@
-To be able to use CI Fuzz dependencies configure access to the CI repository.
-Add the following snippet to your `~/.m2/settings.xml` or extend an already existing one accordingly. You can access your username and private token on the CI Download Portal Configuration page at https://downloads.code-intelligence.com/client/code-intelligence.
+To use CI Fuzz and its dependencies you first must be able to access the CI repository.
+For this, add the following snippet to your `~/.m2/settings.xml`.
 
     <?xml version="1.0" encoding="UTF-8"?>
     <settings xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd" xmlns="http://maven.apache.org/SETTINGS/1.2.0"
@@ -13,7 +13,9 @@ Add the following snippet to your `~/.m2/settings.xml` or extend an already exis
       </servers>
     </settings>
 
-Add the CI repository to your `pom.xml` file:
+You can access your username and private token on the CI Download Portal Configuration page at https://downloads.code-intelligence.com/client/code-intelligence.
+
+To use the CI repository in your project, add it to your pom.xml file:
 
     <repositories>
       <repository>
@@ -28,20 +30,23 @@ Add the CI repository to your `pom.xml` file:
       </pluginRepository>
     </pluginRepositories>
 
-Apply the CI Fuzz Maven extension to your Maven project by adding the following configuration block to your `.mvn/extensions.xml` file:
+To enable fuzz testing in your project, add our CI Fuzz Maven extension to your pom.xml:
 
-    <extensions>
-      <extension>
-        <groupId>com.code-intelligence</groupId>
-        <artifactId>cifuzz-maven-extension</artifactId>
-        <version>1.0.0-rc2</version>
-      </extension>
-    </extensions>
+    <build>
+      <plugins>
+        <plugin>
+          <groupId>com.code-intelligence</groupId>
+          <artifactId>cifuzz-maven-extension</artifactId>
+          <version>1.1.0</version>
+          <extensions>true</extensions>
+        </plugin>
+      </plugins>
+    </build>
 
-In a **multi-project**, you have to mark the project that contains the fuzz tests by setting the `cifuzz.fuzztests` property in the `<project-folder>/pom.xml`:
+In a **multi-project**, you have to mark the project that contains the fuzz tests by setting the cifuzz.fuzztests property in the <project-folder>/pom.xml:
 
     <properties>
       <cifuzz.fuzztests>true</cifuzz.fuzztests>
     </properties>
 
-By default, the `cifuzz.yaml` should be located in the root of your Maven project.
+By default, the cifuzz.yaml should be located in the root of your Maven project.
