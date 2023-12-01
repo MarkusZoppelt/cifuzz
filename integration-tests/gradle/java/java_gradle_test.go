@@ -58,13 +58,23 @@ func TestIntegration_Gradle(t *testing.T) {
 		})
 	})
 
-	// Add the plugin
-	linesToAdd := shared.FilterForInstructions(allStderrLines)
+	// Add instructions to gradle config files
+	linesToAdd := shared.FilterForInstructionBlocks(allStderrLines)
 
-	// we only need to add the first filtered line, as it is the gradle plugin
-	linesToAdd = linesToAdd[:1]
+	repository := linesToAdd[1][1 : len(linesToAdd[1])-2]
+	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "build.gradle"), repository, "repositories", true)
 
-	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "build.gradle"), linesToAdd, "plugins", true)
+	pluginManagement := strings.Join(linesToAdd[2], "\n")
+	err := os.WriteFile(filepath.Join(projectDir, "settings.gradle"), []byte(pluginManagement), 0755)
+	require.NoError(t, err)
+
+	pluginID := linesToAdd[3]
+	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "build.gradle"), pluginID, "id", true)
+
+	junitDep := linesToAdd[4]
+	junitTest := linesToAdd[5]
+	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "build.gradle"), junitDep, "application", false)
+	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "build.gradle"), junitTest, "application", false)
 
 	// Execute the create command
 	testDir := filepath.Join(
@@ -74,7 +84,7 @@ func TestIntegration_Gradle(t *testing.T) {
 		"com",
 		"example",
 	)
-	err := os.MkdirAll(filepath.Join(projectDir, testDir), 0o755)
+	err = os.MkdirAll(filepath.Join(projectDir, testDir), 0o755)
 	require.NoError(t, err)
 	outputPath := filepath.Join(testDir, "FuzzTestCase.java")
 	cifuzzRunner.CommandWithFilterForInstructions(t, "create", &shared.CommandOptions{
