@@ -41,6 +41,7 @@ jobs:
       - name: Setup VM for cifuzz
         uses: ./.github/actions/vm_setup
         with:
+          repository_token: ${{ secrets.REPOSITORY_TOKEN }}
           os: ubuntu-22.04
 
       - name: Run e2e test coverage
@@ -64,6 +65,7 @@ jobs:
       - name: Setup VM for cifuzz
         uses: ./.github/actions/vm_setup
         with:
+          repository_token: ${{ secrets.REPOSITORY_TOKEN }}
           os: ubuntu-22.04
 
       - name: Run integration test coverage
@@ -87,6 +89,7 @@ jobs:
       - name: Setup VM for cifuzz
         uses: ./.github/actions/vm_setup
         with:
+          repository_token: ${{ secrets.REPOSITORY_TOKEN }}
           os: ubuntu-22.04
 
       - name: Test Coverage

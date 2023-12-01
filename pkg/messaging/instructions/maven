@@ -1,3 +1,33 @@
+To be able to use CI Fuzz dependencies configure access to the CI repository.
+Add the following snippet to your `~/.m2/settings.xml` or extend an already existing one accordingly. You can access your username and private token on the CI Download Portal Configuration page at https://downloads.code-intelligence.com/client/code-intelligence.
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <settings xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd" xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <servers>
+        <server>
+          <id>code-intelligence</id>
+          <username><!--YOUR_USERNAME--></username>
+          <password><!--YOUR_TOKEN--></password>
+        </server>
+      </servers>
+    </settings>
+
+Add the CI repository to your `pom.xml` file:
+
+    <repositories>
+      <repository>
+        <id>code-intelligence</id>
+        <url>https://gitlab.code-intelligence.com/api/v4/projects/89/packages/maven</url>
+      </repository>
+    </repositories>
+    <pluginRepositories>
+      <pluginRepository>
+        <id>code-intelligence</id>
+        <url>https://gitlab.code-intelligence.com/api/v4/projects/89/packages/maven</url>
+      </pluginRepository>
+    </pluginRepositories>
+
 Apply the CI Fuzz Maven extension to your Maven project by adding the following configuration block to your `.mvn/extensions.xml` file:
 
     <extensions>

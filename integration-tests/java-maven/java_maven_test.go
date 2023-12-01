@@ -51,8 +51,8 @@ func TestIntegration_Maven(t *testing.T) {
 	// The instructions file for maven includes a snippet we need to add to the .mvn/extensions.xml file.
 	blocks := cifuzzRunner.CommandWithFilterForInstructionBlocks(t, "init", nil)
 
-	extensionLinesToAdd := blocks[0]
 	pomLinesToAdd := blocks[1]
+	extensionLinesToAdd := blocks[2]
 
 	// create the .mvn directory with the extensions.xml file if it doesn't exist
 	err := os.MkdirAll(filepath.Join(projectDir, ".mvn"), 0o755)
@@ -66,9 +66,9 @@ func TestIntegration_Maven(t *testing.T) {
 
 	shared.AddLinesToFileAtBreakPoint(t,
 		filepath.Join(projectDir, "pom.xml"),
-		pomLinesToAdd[1:len(pomLinesToAdd)-1],
-		"\t<properties>",
-		true,
+		pomLinesToAdd,
+		"</project>",
+		false,
 	)
 
 	// Execute the create command

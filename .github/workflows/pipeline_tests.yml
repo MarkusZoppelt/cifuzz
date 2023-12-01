@@ -95,6 +95,7 @@ jobs:
       - name: Setup VM for cifuzz
         uses: ./.github/actions/vm_setup
         with:
+          repository_token: ${{ secrets.REPOSITORY_TOKEN }}
           os: ${{ matrix.os }}
 
       - name: Run integration tests

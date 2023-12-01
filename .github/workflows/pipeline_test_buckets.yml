@@ -19,6 +19,7 @@ jobs:
       - name: Setup VM for cifuzz
         uses: ./.github/actions/vm_setup
         with:
+          repository_token: ${{ secrets.REPOSITORY_TOKEN }}
           os: ubuntu-22.04
 
       - name: Run integration go test and collect JSON in file
