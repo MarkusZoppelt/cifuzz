@@ -29,7 +29,6 @@ type containerRemoteRunOpts struct {
 	Server             string        `mapstructure:"server"` // CI Sense
 	PrintJSON          bool          `mapstructure:"print-json"`
 	Project            string        `mapstructure:"project"` // CI Sense
-	Registry           string        `mapstructure:"registry"`
 	Monitor            bool          `mapstructure:"monitor"`
 	MonitorDuration    time.Duration `mapstructure:"monitor-duration"`
 	MonitorInterval    time.Duration `mapstructure:"monitor-interval"`
@@ -68,12 +67,6 @@ func newWithOptions(opts *containerRemoteRunOpts) *cobra.Command {
 			err := config.FindAndParseProjectConfig(opts)
 			if err != nil {
 				return err
-			}
-
-			// check for required registry flag
-			err = cmd.MarkFlagRequired("registry")
-			if err != nil {
-				return errors.WithStack(err)
 			}
 
 			fuzzTests, err := resolve.FuzzTestArguments(opts.ResolveSourceFilePath, args, opts.BuildSystem, opts.ProjectDir)
@@ -116,7 +109,6 @@ func newWithOptions(opts *containerRemoteRunOpts) *cobra.Command {
 		cmdutils.AddPrintJSONFlag,
 		cmdutils.AddProjectDirFlag,
 		cmdutils.AddProjectFlag,
-		cmdutils.AddRegistryFlag,
 		cmdutils.AddSeedCorpusFlag,
 		cmdutils.AddServerFlag,
 		cmdutils.AddTimeoutFlag,

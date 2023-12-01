@@ -140,7 +140,6 @@ pushes it to a specified container registry, and triggers a remote run
 on CI Sense.
 
     cifuzz container remote-run \
-        --registry <container/registry>  \
         --server app.code-intelligence.com \
         -C examples/gradle \
         com.example.FuzzTestCase::myFuzzTest

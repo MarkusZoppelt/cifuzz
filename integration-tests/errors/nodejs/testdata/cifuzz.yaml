@@ -45,8 +45,5 @@
 ## Set the project name on CI Sense.
 #project: my-project-1a2b3c4d
 
-## Set the container registry to upload fuzz containers to.
-# registry: registry.example.org/my-org/my-project
-
 ## Style for CI Fuzz.
 #style: plain

@@ -24,32 +24,27 @@ var containerRemoteRunTests = &[]e2e.TestCase{
 		Description:   "container remote-run command in a maven/gradle example directory is available and pushes it to a registry",
 		CIUser:        e2e.LoggedInCIUser,
 		Command:       "container remote-run",
-		Args:          []string{" --project test-project --registry localhost:5000/test/cifuzz com.example.FuzzTestCase::myFuzzTest -v"},
+		Args:          []string{" --project test-project com.example.FuzzTestCase::myFuzzTest -v"},
 		SampleFolder:  []string{"../../../examples/maven", "../../../examples/gradle"},
 		ToolsRequired: []string{"docker", "java", "maven"},
 		SkipOnOS:      "windows",
 		Assert: func(t *testing.T, output e2e.CommandOutput) {
 			output.Success().
 				ErrorContains("Created fuzz container image with ID ").
-				ErrorContains("Start uploading image ").
-				ErrorContains("to localhost:5000/test/cifuzz").
-				ErrorContains("The push refers to repository [localhost:5000/test/cifuzz]")
+				ErrorContains("Start uploading image ")
 		},
 	},
 	{
 		Description:   "container remote-run command in a maven/gradle example directory with monitor mode runs successfully",
 		CIUser:        e2e.LoggedInCIUser,
 		Command:       "container remote-run",
-		Args:          []string{" --project test-project --registry localhost:5000/test/cifuzz com.example.FuzzTestCase::myFuzzTest --monitor --monitor-duration 5m --monitor-interval 5s -v"},
+		Args:          []string{" --project test-project com.example.FuzzTestCase::myFuzzTest --monitor --monitor-duration 5m --monitor-interval 5s -v"},
 		SampleFolder:  []string{"../../../examples/maven"},
 		ToolsRequired: []string{"docker", "java", "maven"},
 		SkipOnOS:      "windows",
 		Assert: func(t *testing.T, output e2e.CommandOutput) {
 			output.Success().
 				ErrorContains("Created fuzz container image with ID ").
-				ErrorContains("Start uploading image ").
-				ErrorContains("to localhost:5000/test/cifuzz").
-				ErrorContains("The push refers to repository [localhost:5000/test/cifuzz]").
 				ErrorContains("Max monitor duration is 300 seconds.").
 				ErrorContains("Finding found: test_finding, NID: fdn-testtesttesttest")
 		},
@@ -58,7 +53,7 @@ var containerRemoteRunTests = &[]e2e.TestCase{
 		Description:   "container remote-run command in a maven/gradle example directory with monitor mode and check for duration limit.",
 		CIUser:        e2e.LoggedInCIUser,
 		Command:       "container remote-run",
-		Args:          []string{" --project test-project --registry localhost:5000/test/cifuzz com.example.FuzzTestCase::myFuzzTest --monitor --monitor-duration 10s --monitor-interval 5s -v"},
+		Args:          []string{" --project test-project com.example.FuzzTestCase::myFuzzTest --monitor --monitor-duration 10s --monitor-interval 5s -v"},
 		SampleFolder:  []string{"../../../examples/maven"},
 		ToolsRequired: []string{"docker", "java", "maven"},
 		SkipOnOS:      "windows",
@@ -66,8 +61,6 @@ var containerRemoteRunTests = &[]e2e.TestCase{
 			output.Success().
 				ErrorContains("Created fuzz container image with ID ").
 				ErrorContains("Start uploading image ").
-				ErrorContains("to localhost:5000/test/cifuzz").
-				ErrorContains("The push refers to repository [localhost:5000/test/cifuzz]").
 				ErrorContains("Max monitor duration is 10 seconds.").
 				ErrorNotContains("Finding found: test_finding, NID: fdn-testtesttesttest")
 		},
