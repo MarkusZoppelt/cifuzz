@@ -30,6 +30,7 @@ jobs:
       - name: Setup VM for cifuzz
         uses: ./.github/actions/vm_setup
         with:
+          repository_user: ${{ secrets.REPOSITORY_USER }}
           repository_token: ${{ secrets.REPOSITORY_TOKEN }}
           os: ${{ matrix.os }}
 

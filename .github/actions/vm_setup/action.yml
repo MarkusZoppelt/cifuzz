@@ -4,6 +4,9 @@ inputs:
   os:
     description: "current vm operating system"
     required: true
+  repository_user:
+    description: "user for the private repository"
+    required: true
   repository_token:
     description: "token for the private repository"
     required: true
@@ -45,7 +48,7 @@ runs:
     - name: Write Maven settings
       run: |
         mkdir -p ~/.m2
-        echo "<settings><servers><server><id>code-intelligence</id><username>Trial-User</username><password>${{ inputs.repository_token }}</password></server></servers></settings>" > ~/.m2/settings.xml
+        echo "<settings><servers><server><id>code-intelligence</id><username>${{ inputs.repository_user }}</username><password>${{ inputs.repository_token }}</password></server></servers></settings>" > ~/.m2/settings.xml
       shell: bash
 
     - name: Install LLVM and Clang
