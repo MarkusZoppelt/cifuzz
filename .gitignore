@@ -22,3 +22,5 @@
 gotest.log
 
 **/node_modules/
+
+**/.gradle
