@@ -1,7 +1,7 @@
 package com.example;
 
 public class ExploreMe {
-    private int a;
+    private final int a;
 
     public ExploreMe(int a) {
         this.a = a;

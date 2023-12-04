@@ -10,11 +10,11 @@ class ExploreMe(private val a: Int) {
                     if (c.startsWith("@")) {
                         val className = c.substring(1)
                         try {
-                            Class.forName(className).newInstance()
+                            Class.forName(className).getDeclaredConstructor().newInstance()
                         } catch (ex: Exception) {
                             when(ex) {
-                                is ClassNotFoundException, is InstantiationException, is IllegalAccessException -> {
-                                    // ignore 
+                                is ReflectiveOperationException -> {
+                                    // ignore
                                 }
                                 else -> throw ex
                             }
