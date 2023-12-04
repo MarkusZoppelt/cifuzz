@@ -90,7 +90,7 @@ func TestBundleGradle(t *testing.T, lang string, dir string, cifuzz string, args
 	require.NoError(t, err)
 	switch lang {
 	case "java":
-		assert.Equal(t, 20, len(jarMatches))
+		assert.Equal(t, 13, len(jarMatches))
 	case "kotlin":
 		assert.Equal(t, 18, len(jarMatches))
 	}

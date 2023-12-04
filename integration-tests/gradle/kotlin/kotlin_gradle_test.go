@@ -58,11 +58,22 @@ func TestIntegration_GradleKotlin(t *testing.T) {
 		})
 	})
 
-	linesToAdd := shared.FilterForInstructions(allStderrLines)
+	// Add instructions to gradle config files
+	linesToAdd := shared.FilterForInstructionBlocks(allStderrLines)
 
-	// we only need to add the first filtered line, as it is the gradle plugin
-	linesToAdd = linesToAdd[:1]
-	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "build.gradle.kts"), linesToAdd, "plugins", true)
+	repository := linesToAdd[1][1 : len(linesToAdd[1])-2]
+	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "build.gradle.kts"), repository, "repositories", true)
+
+	pluginManagement := linesToAdd[2]
+	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "settings.gradle.kts"), pluginManagement, "rootProject", true)
+
+	pluginID := linesToAdd[3]
+	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "build.gradle.kts"), pluginID, "application", true)
+
+	junitDep := linesToAdd[4]
+	junitTest := linesToAdd[5]
+	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "build.gradle.kts"), junitDep, "application {", false)
+	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "build.gradle.kts"), junitTest, "application {", false)
 
 	// Execute the create command
 	testDir := filepath.Join(
