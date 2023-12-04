@@ -1,21 +1,55 @@
-Please make sure to add our cifuzz gradle plugin to your
-build.gradle to enable fuzz testing:
+To use CI Fuzz and its dependencies you first must be able to access the CI repository.
+For this, add the following repository settings to Gradle, e.g. to your ~/.gradle/gradle.properties file.
 
-    id "com.code-intelligence.cifuzz" version "1.9.0"
+    CodeIntelligenceRepositoryUsername=<YOUR_USERNAME>
+    CodeIntelligenceRepositoryPassword=<YOUR_TOKEN>
 
-We highly recommend using cifuzz with JUnit >=5 to ensure
-easy IDE integration.
+You can access your username and private token on the CI Download Portal Configuration page at https://downloads.code-intelligence.com/client/code-intelligence.
+
+To use the CI repository in your project, add it to your build.gradle file:
+
+    repositories {
+      maven {
+        name = "CodeIntelligenceRepository"
+        url = uri("https://gitlab.code-intelligence.com/api/v4/projects/89/packages/maven")
+        credentials(PasswordCredentials.class)
+        content {
+          includeGroupByRegex("com\\.code-intelligence.*")
+        }
+      }
+      mavenCentral()
+    }
+
+You also have to add the CI repository as an additional plugin repository to your settings.gradle file:
+
+    pluginManagement {
+      repositories {
+        maven {
+          name = "CodeIntelligenceRepository"
+          url = uri("https://gitlab.code-intelligence.com/api/v4/projects/89/packages/maven")
+          credentials(PasswordCredentials.class)
+          content {
+            includeGroupByRegex("com\\.code-intelligence.*")
+          }
+        }
+        gradlePluginPortal()
+      }
+    }
+
+To enable fuzz testing in your project, add our CI Fuzz Gradle plugin to your build.gradle:
+
+    id "com.code-intelligence.cifuzz" version "1.10.0"
+
+Fuzz test are executed with JUnit 5, which needs to be configured in your project.
 
     dependencies {
-        testImplementation(platform("org.junit:junit-bom:5.10.0"))
-        testImplementation('org.junit.jupiter:junit-jupiter')
-        testImplementation('com.code-intelligence:jazzer-junit:0.21.1')
+      testImplementation(platform("org.junit:junit-bom:5.10.0"))
+      testImplementation('org.junit.jupiter:junit-jupiter')
     }
 
-    tasks.test {
-        useJUnitPlatform()
-        testLogging {
-            events("passed", "skipped", "failed")
-        }
+    test {
+      useJUnitPlatform()
+      testLogging {
+        events("passed", "skipped", "failed")
+      }
     }
-
