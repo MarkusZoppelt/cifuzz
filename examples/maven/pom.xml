@@ -17,4 +17,28 @@
 		<maven.compiler.source>8</maven.compiler.source>
 		<maven.compiler.target>8</maven.compiler.target>
 	</properties>
+
+	<repositories>
+		<repository>
+			<id>code-intelligence</id>
+			<url>https://gitlab.code-intelligence.com/api/v4/projects/89/packages/maven</url>
+		</repository>
+	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>code-intelligence</id>
+			<url>https://gitlab.code-intelligence.com/api/v4/projects/89/packages/maven</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.code-intelligence</groupId>
+				<artifactId>cifuzz-maven-extension</artifactId>
+				<version>1.1.0</version>
+				<extensions>true</extensions>
+			</plugin>
+		</plugins>
+	</build>
 </project>

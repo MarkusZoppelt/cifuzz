@@ -2,12 +2,11 @@ package com.example;
 
 import com.code_intelligence.jazzer.api.FuzzedDataProvider;
 import com.code_intelligence.jazzer.junit.FuzzTest;
-import com.example.ExploreMe;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class TestCases {
+public class FuzzTestCase {
 
     @FuzzTest
     void myFuzzTest(FuzzedDataProvider data) {

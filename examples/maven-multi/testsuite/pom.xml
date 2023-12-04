@@ -15,10 +15,6 @@
 		<version>1.0-SNAPSHOT</version>
 	</parent>
 
-	<properties>
-		<cifuzz.fuzztests>true</cifuzz.fuzztests>
-	</properties>
-
 	<dependencies>
 		<dependency>
 			<groupId>com.github.CodeIntelligenceTesting.cifuzz</groupId>
@@ -26,4 +22,8 @@
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
+
+	<properties>
+		<cifuzz.fuzztests>true</cifuzz.fuzztests>
+	</properties>
 </project>

@@ -5,7 +5,8 @@ This is a simple Maven based multi-project, already configured with
 see the progress of the fuzzer.
 
 To start make sure you installed **cifuzz** according to the
-main [README](../../README.md).
+main [README](../../README.md) and added your CI repository credentials
+to Maven in `~/.m2/settings.xml`.
 
 You can start fuzzing with
 
