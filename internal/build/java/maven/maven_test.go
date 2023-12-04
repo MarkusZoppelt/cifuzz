@@ -24,7 +24,7 @@ func Test_GetTestDir(t *testing.T) {
 	shared.AddLinesToFileAtBreakPoint(t,
 		filepath.Join(projectDir, "pom.xml"),
 		[]string{fmt.Sprintf("<testSourceDirectory>%s</testSourceDirectory>", newTestDir)},
-		"\t<build>",
+		"<build>",
 		true,
 	)
 	testDir, err = GetTestDir(projectDir)
@@ -44,7 +44,7 @@ func Test_GetSourceDir(t *testing.T) {
 	shared.AddLinesToFileAtBreakPoint(t,
 		filepath.Join(projectDir, "pom.xml"),
 		[]string{fmt.Sprintf("<sourceDirectory>%s</sourceDirectory>", newSourceDir)},
-		"\t<build>",
+		"<build>",
 		true,
 	)
 	sourceDir, err = GetSourceDir(projectDir)

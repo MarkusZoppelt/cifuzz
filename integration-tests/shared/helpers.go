@@ -45,7 +45,7 @@ func AddLinesToFileAtBreakPoint(t *testing.T, filePath string, linesToAdd []stri
 	var lines []string
 	var addedLines bool
 	for scanner.Scan() {
-		if !addedLines && strings.HasPrefix(scanner.Text(), breakPoint) {
+		if !addedLines && strings.HasPrefix(strings.TrimSpace(scanner.Text()), breakPoint) {
 			if addAfterBreakpoint {
 				lines = append(lines, scanner.Text())
 				lines = append(lines, linesToAdd...)
