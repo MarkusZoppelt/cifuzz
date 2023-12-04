@@ -2,7 +2,7 @@
 
 ## Release process
 
-We are using a automatic release process based on conventional commits
+We are using an automatic release process based on conventional commits
 and semantic versioning.
 
 ## Building from Source (Linux / macOS)
@@ -72,7 +72,7 @@ make install
 
 ### macOS
 
-<!-- when changing this, please make sure it`is in sync with the E2E pipeline -->
+<!-- when changing this, please make sure it is in sync with the E2E pipeline -->
 
 ```bash
 brew install git cmake llvm lcov go openjdk maven gradle bazelisk node
@@ -87,7 +87,18 @@ export LDFLAGS="-L$(brew --prefix)/opt/llvm/lib"
 export CPPFLAGS="-I$(brew --prefix)/opt/llvm/include"
 ```
 
-## Steps
+### Integration Tests
+
+To execute the integration tests, access to the private CI repository is
+required. Please follow the instructions on the [Code Intelligence Download
+Portal](https://downloads.code-intelligence.com/client/code-intelligence)
+configuration page to set up your local environment with the currently
+valid access token.
+
+Required build systems include Maven (`~/.m2/settings.xml`),
+Gradel (`~/.gradel/gradle.properties`), npm (`~/.npmrc`).
+
+### Steps
 
 To build **cifuzz** from source you have to execute the following steps:
 
@@ -108,7 +119,7 @@ cifuzz run my_fuzz_test
 
 This should stop after a few seconds with an actual finding.
 
-### Windows
+#### Windows
 
 We use symlinks in our repository. Developer mode needs to be
 activated in order to create symlinks without admin privileges.
