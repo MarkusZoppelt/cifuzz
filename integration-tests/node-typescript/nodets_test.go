@@ -48,6 +48,10 @@ func TestIntegration_NodeTS_InitCreateRunCoverage(t *testing.T) {
 	})
 	require.FileExists(t, filepath.Join(projectDir, "cifuzz.yaml"))
 
+	// Add repository to .npmrc
+	err := os.WriteFile(filepath.Join(projectDir, ".npmrc"), []byte(instructions[1]), 0o755)
+	require.NoError(t, err)
+
 	// Execute npm install --save-dev @jazzer.js/jest-runner
 	npmArgs := getNpmArgs(t, instructions)
 	require.NotEmpty(t, npmArgs)
@@ -58,7 +62,7 @@ func TestIntegration_NodeTS_InitCreateRunCoverage(t *testing.T) {
 	cmd.Stderr = os.Stderr
 
 	t.Logf("Command: %s", cmd.String())
-	err := cmd.Run()
+	err = cmd.Run()
 	require.NoError(t, err)
 
 	// Create jest.config.ts file

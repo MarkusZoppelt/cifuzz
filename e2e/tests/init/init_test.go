@@ -41,7 +41,7 @@ var nodeInitTests = &[]e2e.TestCase{
 		SampleFolder: []string{"nodejs"},
 		Assert: func(t *testing.T, output e2e.CommandOutput) {
 			assert.EqualValues(t, 0, output.ExitCode)
-			assert.Contains(t, output.Stdall, "To use jazzer.js, add a dev-dependency to @jazzer.js/jest-runner")
+			assert.Contains(t, output.Stdall, "To enable fuzz testing in your project, add a dev-dependency to @jazzer.js/jest-runner")
 			assert.Contains(t, output.Stdall, "Configuration saved in cifuzz.yaml")
 			assert.NotContains(t, output.Stdall, "Failed to create config")
 			output.FileExists("cifuzz.yaml")
@@ -54,7 +54,7 @@ var nodeInitTests = &[]e2e.TestCase{
 		SampleFolder: []string{"node-typescript"},
 		Assert: func(t *testing.T, output e2e.CommandOutput) {
 			assert.EqualValues(t, 0, output.ExitCode)
-			assert.Contains(t, output.Stdall, "To use jazzer.js, add a dev-dependency to @jazzer.js/jest-runner")
+			assert.Contains(t, output.Stdall, "To enable fuzz testing in your project, add a dev-dependency to @jazzer.js/jest-runner")
 			assert.Contains(t, output.Stdall, "'jest.config.ts'")
 			assert.Contains(t, output.Stdall, "To introduce the fuzz function types globally, add the following import to globals.d.ts:")
 			assert.Contains(t, output.Stdall, "Configuration saved in cifuzz.yaml")

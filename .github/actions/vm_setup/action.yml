@@ -108,3 +108,7 @@ runs:
         echo "${HOME}/AppData/Roaming/cifuzz/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
         echo "$env:ChocolateyInstall\lib\lcov\tools\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       shell: pwsh
+
+    - name: Write npm settings
+      run: echo "//gitlab.code-intelligence.com/api/v4/projects/89/packages/npm/:_authToken=${{ inputs.repository_token }}" > ~/.npmrc
+      shell: bash

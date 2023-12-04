@@ -1,14 +1,24 @@
-To use jazzer.js, add a dev-dependency to @jazzer.js/jest-runner to your
-project. To do so, execute the following command:
+To use CI Fuzz and its dependencies you first must be able to access the CI repository.
+For this, add the following repository settings to npm, e.g. in your ~/.npmrc file.
+
+    //gitlab.code-intelligence.com/api/v4/projects/89/packages/npm/:_authToken="<YOUR_TOKEN>"
+
+You can access your username and private token on the CI Download Portal Configuration page at https://downloads.code-intelligence.com/client/code-intelligence.
+
+To use the CI repository in your project, add it to the .npmrc project file:
+
+    @jazzer.js:registry=https://gitlab.code-intelligence.com/api/v4/projects/89/packages/npm/
+
+To enable fuzz testing in your project, add a dev-dependency to @jazzer.js/jest-runner
+to your project. To do so, execute the following command:
 
     # if you use npm
-    npm install --save-dev @jazzer.js/jest-runner@2.1.0 ts-jest ts-node
+    npm install --save-dev @jazzer.js/jest-runner@3.0.0 ts-jest ts-node
 
     # or if you use yarn
-    yarn add --dev @jazzer.js/jest-runner@2.1.0 ts-jest ts-node
+    yarn add --dev @jazzer.js/jest-runner@3.0.0 ts-jest ts-node
 
-
-To integrate with your existing jest setup, please add this to your
+To integrate with your existing Jest setup, please add this to your
 'jest.config.ts':
 
     import type { Config } from "jest";
