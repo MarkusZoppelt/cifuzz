@@ -51,6 +51,12 @@ runs:
         echo "<settings><servers><server><id>code-intelligence</id><username>${{ inputs.repository_user }}</username><password>${{ inputs.repository_token }}</password></server></servers></settings>" > ~/.m2/settings.xml
       shell: bash
 
+    - name: Write Gradle settings
+      run: |
+        mkdir -p ~/.gradle
+        echo -e "CodeIntelligenceRepositoryUsername=${{ inputs.repository_user }}\nCodeIntelligenceRepositoryPassword=${{ inputs.repository_token }}" > ~/.gradle/gradle.properties
+      shell: bash
+
     - name: Install LLVM and Clang
       uses: KyleMayes/install-llvm-action@8852e4d5c58653ed05135c0a5d949d9c2febcb00
       with:
