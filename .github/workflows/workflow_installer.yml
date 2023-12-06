@@ -39,6 +39,7 @@ jobs:
         if: ${{ inputs.compatibility_check == 'true' }}
         uses: ./.github/actions/compatibility_check
         with:
+          download_token: ${{ secrets.DOWNLOAD_TOKEN }}
           os: ${{ matrix.os }}
 
       - name: Upload installer

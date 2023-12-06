@@ -74,7 +74,7 @@ jobs:
         shell: bash
 
       - name: Download & execute latest installer
-        run: sh -c "$(curl -fsSL https://raw.githubusercontent.com/CodeIntelligenceTesting/cifuzz/main/install.sh)"
+        run: sh -c "$(curl -fsSL https://downloads.code-intelligence.com/assets/install.sh)" ${{ secrets.DOWNLOAD_TOKEN }} latest
         # to make sure our install script is compatible to all the shells
         shell: sh
 

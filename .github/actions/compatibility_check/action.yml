@@ -4,6 +4,10 @@ inputs:
   os:
     description: "current vm operating system"
     required: true
+  download_token:
+    description: "token for the download portal"
+    required: true
+
 runs:
   using: "composite"
   steps:
@@ -27,7 +31,7 @@ runs:
       run: |
         mkdir -p ~/current_release
         cd ~/current_release
-        sh -c "$(curl -fsSL https://raw.githubusercontent.com/CodeIntelligenceTesting/cifuzz/main/install.sh)"
+        sh -c "$(curl -fsSL https://downloads.code-intelligence.com/assets/install.sh)" ${{ inputs.download_token }} latest
       shell: bash
 
     # change paths as soon as the new install path is released
