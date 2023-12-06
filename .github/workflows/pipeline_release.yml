@@ -41,18 +41,10 @@ jobs:
       version: ${{ needs.version.outputs.version }}
       compatibility_check: ${{ vars.RELEASE_COMPATIBILITY_CHECK }}
 
-  tag_container_image:
-    name: Tag container image
-    needs: [version, installer]
-    if: needs.version.outputs.published == 'true'
-    uses: ./.github/workflows/workflow_container_image.yml
-    with:
-      version: ${{ needs.version.outputs.version }}
-
   create_release:
     name: Create release
     runs-on: ubuntu-latest
-    needs: [version, installer, tag_container_image]
+    needs: [version, installer]
     if: needs.version.outputs.published == 'true'
     permissions:
       contents: write # for creating releases
@@ -102,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
     # send a slack notification if one of the jobs in `needs` failed
     if: ${{ always() && contains(needs.*.result, 'failure') }}
-    needs: [version, installer, tag_container_image, create_release]
+    needs: [version, installer, create_release, upload_portal]
     steps:
       - name: Send error notification to slack
         uses: slackapi/slack-github-action@v1.24.0
