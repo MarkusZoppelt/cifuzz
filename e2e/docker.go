@@ -128,10 +128,15 @@ func runTestCaseInContainer(t *testing.T, ctx context.Context, dockerClient *cli
 
 	containerConfig.Cmd = deleteEmptyStringsFromSlice(containerConfig.Cmd)
 
+	containerBindSuffix := ""
+	if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
+		containerBindSuffix = ":z"
+	}
 	containerBinds := []string{
-		installDir + ":" + cifuzzTargetMount,
-		contextFolder + ":" + targetMount,
-		hostCoverageDirectoryPath + ":" + coverageDirectoryPath,
+		// Add bindings with ":z" to support SELinux.
+		installDir + ":" + cifuzzTargetMount + containerBindSuffix,
+		contextFolder + ":" + targetMount + containerBindSuffix,
+		hostCoverageDirectoryPath + ":" + coverageDirectoryPath + containerBindSuffix,
 	}
 
 	for _, tool := range testCase.ToolsRequired {
@@ -145,13 +150,19 @@ func runTestCaseInContainer(t *testing.T, ctx context.Context, dockerClient *cli
 		}
 	}
 
+	config := dockerContainer.HostConfig{
+		Binds:      containerBinds,
+		ExtraHosts: []string{"host.docker.internal:host-gateway"},
+	}
+	if runtime.GOOS != "windows" {
+		// SELinux blocks access to the docker socket. Disable it for now, as only trusted containers are executed.
+		config.SecurityOpt = []string{"label=disable"}
+	}
+
 	cont, err := dockerClient.ContainerCreate(
 		ctx,
 		containerConfig,
-		&dockerContainer.HostConfig{
-			Binds:      containerBinds,
-			ExtraHosts: []string{"host.docker.internal:host-gateway"},
-		},
+		&config,
 		nil,
 		nil,
 		"", // TODO: should the container have a name?
