@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -137,6 +138,18 @@ func runTestCaseInContainer(t *testing.T, ctx context.Context, dockerClient *cli
 		installDir + ":" + cifuzzTargetMount + containerBindSuffix,
 		contextFolder + ":" + targetMount + containerBindSuffix,
 		hostCoverageDirectoryPath + ":" + coverageDirectoryPath + containerBindSuffix,
+	}
+
+	// Mount build system configuration files into container to pick up private repository settings.
+	homeDir, err := os.UserHomeDir()
+	if runtime.GOOS == "windows" {
+		// Windows Containers do not support mounting single files, so mount the whole home directory.
+		containerBinds = append(containerBinds, homeDir+":C:\\Users\\ContainerAdministrator\\")
+	} else {
+		for _, config := range []string{".m2", ".gradle", ".npmrc"} {
+			require.NoError(t, err)
+			containerBinds = append(containerBinds, path.Join(homeDir, config)+":"+path.Join("/", "root", config)+containerBindSuffix)
+		}
 	}
 
 	for _, tool := range testCase.ToolsRequired {
