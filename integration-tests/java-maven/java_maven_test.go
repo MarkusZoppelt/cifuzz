@@ -51,23 +51,22 @@ func TestIntegration_Maven(t *testing.T) {
 	// The instructions file for maven includes a snippet we need to add to the .mvn/extensions.xml file.
 	blocks := cifuzzRunner.CommandWithFilterForInstructionBlocks(t, "init", nil)
 
-	pomLinesToAdd := blocks[1]
-	extensionLinesToAdd := blocks[2]
-
-	// create the .mvn directory with the extensions.xml file if it doesn't exist
-	err := os.MkdirAll(filepath.Join(projectDir, ".mvn"), 0o755)
-	require.NoError(t, err)
-	err = os.WriteFile(filepath.Join(projectDir, ".mvn", "extensions.xml"), []byte(""), 0o644)
-	require.NoError(t, err)
-
 	assert.FileExists(t, filepath.Join(projectDir, "cifuzz.yaml"))
 
-	shared.AppendLines(t, filepath.Join(projectDir, ".mvn", "extensions.xml"), extensionLinesToAdd)
+	repositoryLinesToAdd := blocks[1]
+	extensionLinesToAdd := blocks[2]
 
 	shared.AddLinesToFileAtBreakPoint(t,
 		filepath.Join(projectDir, "pom.xml"),
-		pomLinesToAdd,
+		repositoryLinesToAdd,
 		"</project>",
+		false,
+	)
+
+	shared.AddLinesToFileAtBreakPoint(t,
+		filepath.Join(projectDir, "pom.xml"),
+		extensionLinesToAdd[2:len(extensionLinesToAdd)-2],
+		"</plugins>",
 		false,
 	)
 
@@ -79,7 +78,7 @@ func TestIntegration_Maven(t *testing.T) {
 		"com",
 		"example",
 	)
-	err = os.MkdirAll(filepath.Join(projectDir, testDir), 0o755)
+	err := os.MkdirAll(filepath.Join(projectDir, testDir), 0o755)
 	require.NoError(t, err)
 	outputPath := filepath.Join(testDir, "FuzzTestCase.java")
 	cifuzzRunner.CommandWithFilterForInstructions(t, "create", &shared.CommandOptions{

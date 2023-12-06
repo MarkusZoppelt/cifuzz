@@ -1,7 +1,7 @@
 package com.example;
 
 public class ExploreMe {
-    private int a;
+    private final int a;
 
     public ExploreMe(int a) {
         this.a = a;
@@ -15,10 +15,10 @@ public class ExploreMe {
                     // Trigger Remote Code Execution Bug
                     if (c.startsWith("@")) {
                         String className = c.substring(1);
-                        try {
-                            Class.forName(className).newInstance();
-                        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ignored) {
-                        }
+												try {
+													Class.forName(className).getDeclaredConstructor().newInstance();
+												} catch (ReflectiveOperationException ignored) {
+												}
                     }
                 }
             }

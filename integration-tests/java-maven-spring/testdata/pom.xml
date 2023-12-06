@@ -16,8 +16,10 @@
 	<groupId>com.example</groupId>
 	<artifactId>junit-spring-web</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+
 	<name>junit-spring-web</name>
 	<description>Demo project for Spring Boot</description>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -38,7 +40,7 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<version>2.1.212</version>
+			<version>2.2.220</version>
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>
@@ -49,6 +51,25 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			<plugin>
+				<groupId>com.code-intelligence</groupId>
+				<artifactId>cifuzz-maven-extension</artifactId>
+				<version>1.1.0</version>
+				<extensions>true</extensions>
+			</plugin>
 		</plugins>
 	</build>
+
+	<repositories>
+		<repository>
+			<id>code-intelligence</id>
+			<url>https://gitlab.code-intelligence.com/api/v4/projects/89/packages/maven</url>
+		</repository>
+	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>code-intelligence</id>
+			<url>https://gitlab.code-intelligence.com/api/v4/projects/89/packages/maven</url>
+		</pluginRepository>
+	</pluginRepositories>
 </project>
