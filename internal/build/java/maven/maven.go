@@ -96,6 +96,7 @@ func GetDependencies(projectDir string, parallel ParallelOptions) ([]string, err
 	cmd := runMaven(projectDir, args)
 	output, err := cmd.Output()
 	if err != nil {
+		log.Debugf("%s", string(output))
 		return nil, cmdutils.WrapExecError(errors.WithStack(err), cmd)
 	}
 
@@ -131,6 +132,7 @@ func GetBuildDirectory(projectDir string) (string, error) {
 	cmd := runMaven(projectDir, []string{"validate", "-q", "-DcifuzzPrintBuildDir"})
 	output, err := cmd.Output()
 	if err != nil {
+		log.Debugf("%s", string(output))
 		return "", cmdutils.WrapExecError(errors.WithStack(err), cmd)
 	}
 
@@ -147,6 +149,7 @@ func GetRootDirectory(projectDir string) (string, error) {
 	cmd := runMaven(projectDir, []string{"validate", "-q", "-DcifuzzPrintRootDir"})
 	output, err := cmd.Output()
 	if err != nil {
+		log.Debugf("%s\n", string(output))
 		return "", cmdutils.WrapExecError(errors.WithStack(err), cmd)
 	}
 
@@ -165,6 +168,7 @@ func GetTestDir(projectDir string) (string, error) {
 	cmd := runMaven(projectDir, []string{"validate", "-q", "-DcifuzzPrintTestSourceFolders"})
 	output, err := cmd.Output()
 	if err != nil {
+		log.Debugf("%s\n", string(output))
 		return "", cmdutils.WrapExecError(errors.WithStack(err), cmd)
 	}
 
@@ -193,6 +197,7 @@ func GetSourceDir(projectDir string) (string, error) {
 	cmd := runMaven(projectDir, []string{"validate", "-q", "-DcifuzzPrintMainSourceFolders"})
 	output, err := cmd.Output()
 	if err != nil {
+		log.Debugf("%s\n", string(output))
 		return "", errors.WithMessagef(err, "Failed to get source directory of project")
 	}
 
