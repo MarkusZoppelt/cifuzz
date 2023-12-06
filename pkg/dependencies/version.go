@@ -258,7 +258,7 @@ func getVersionFromCommand(cmdPath string, args []string, re *regexp.Regexp, key
 func extractVersion(output string, re *regexp.Regexp, key Key) (*semver.Version, error) {
 	result := re.FindStringSubmatch(output)
 	if len(result) <= 1 {
-		return nil, fmt.Errorf("no matching version string for %s", key)
+		return nil, fmt.Errorf("no matching version found for %s", key)
 	}
 
 	version, err := semver.NewVersion(result[1])

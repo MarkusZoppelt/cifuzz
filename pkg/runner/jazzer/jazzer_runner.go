@@ -75,10 +75,7 @@ func (r *Runner) Run(ctx context.Context) error {
 	}
 
 	// Print version information for debugging purposes
-	err = r.printDebugVersionInfos(classPath, javaBin)
-	if err != nil {
-		return err
-	}
+	r.printDebugVersionInfos(classPath, javaBin)
 
 	args := []string{javaBin}
 
@@ -360,23 +357,25 @@ func (r *Runner) Cleanup(ctx context.Context) {
 	r.Runner.Cleanup(ctx)
 }
 
-func (r *Runner) printDebugVersionInfos(classPath string, javaBin string) error {
+func (r *Runner) printDebugVersionInfos(classPath string, javaBin string) {
 	jazzerVersion, err := dependencies.JazzerVersion(classPath)
 	if err != nil {
-		return err
+		log.Warn(err)
+	} else {
+		log.Debugf("Jazzer version: %s", jazzerVersion)
 	}
+
 	junitVersion, err := dependencies.JUnitVersion(classPath)
 	if err != nil {
-		return err
+		log.Warn(err)
+	} else {
+		log.Debugf("JUnit Jupiter Engine version: %s", junitVersion)
 	}
+
 	javaVersion, err := dependencies.JavaVersion(javaBin)
 	if err != nil {
-		return err
+		log.Warn(err)
+	} else {
+		log.Debugf("Java version: %s", javaVersion)
 	}
-
-	log.Debugf("Jazzer version: %s", jazzerVersion)
-	log.Debugf("JUnit Jupiter Engine version: %s", junitVersion)
-	log.Debugf("Java version: %s", javaVersion)
-
-	return nil
 }

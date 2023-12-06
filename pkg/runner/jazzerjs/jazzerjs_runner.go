@@ -59,10 +59,8 @@ func (r *Runner) Run(ctx context.Context) error {
 		return err
 	}
 
-	err = r.printDebugVersionInfos()
-	if err != nil {
-		return err
-	}
+	// Print version information for debugging purposes
+	r.printDebugVersionInfos()
 
 	args := []string{"npx", "jest"}
 
@@ -107,20 +105,20 @@ func (r *Runner) Cleanup(ctx context.Context) {
 	r.Runner.Cleanup(ctx)
 }
 
-func (r *Runner) printDebugVersionInfos() error {
+func (r *Runner) printDebugVersionInfos() {
 	jazzerJSVersion, err := dependencies.JazzerJSVersion()
 	if err != nil {
-		return err
+		log.Warn(err)
+	} else {
+		log.Debugf("JazzerJS version: %s", jazzerJSVersion)
 	}
+
 	jestVersion, err := dependencies.JestVersion()
 	if err != nil {
-		return err
+		log.Warn(err)
+	} else {
+		log.Debugf("Jest version: %s", jestVersion)
 	}
-
-	log.Debugf("JazzerJS version: %s", jazzerJSVersion)
-	log.Debugf("Jest version: %s", jestVersion)
-
-	return nil
 }
 
 type jazzerJSRC struct {
