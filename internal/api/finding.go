@@ -13,6 +13,7 @@ import (
 
 type Findings struct {
 	Findings []Finding `json:"findings"`
+	Links    []Link    `json:"links"`
 }
 
 type Finding struct {
@@ -24,6 +25,27 @@ type Finding struct {
 	ErrorReport           *ErrorReport `json:"error_report"`
 	Timestamp             string       `json:"timestamp"`
 	FuzzTargetDisplayName string       `json:"fuzz_target_display_name,omitempty"`
+
+	// new with v3
+	JobNid           string       `json:"job_nid"`
+	Nid              string       `json:"nid"`
+	InputData        string       `json:"input_data"`
+	RunNid           string       `json:"run_nid"`
+	ErrorID          string       `json:"error_id"`
+	Logs             []string     `json:"logs"`
+	State            string       `json:"state"`
+	CreatedAt        string       `json:"created_at"`
+	FirstSeenFinding string       `json:"first_seen_finding"`
+	IssueTrackerLink string       `json:"issue_tracker_link"`
+	ProjectNid       string       `json:"project_nid"`
+	Stacktrace       []Stacktrace `json:"stacktrace"`
+}
+
+type Stacktrace struct {
+	File     string `json:"file"`
+	Function string `json:"function"`
+	Line     int64  `json:"line"`
+	Column   int64  `json:"column"`
 }
 
 type ErrorReport struct {
@@ -99,6 +121,43 @@ func (client *APIClient) DownloadRemoteFindings(project string, token string) (F
 	err = json.Unmarshal(body, &remoteFindings)
 	if err != nil {
 		return remoteFindings, errors.WithStack(err)
+	}
+
+	return remoteFindings, nil
+}
+
+// RemoteFindingsForRun uses the v3 API to download all findings for a given
+// (container remote-)run.
+func (client *APIClient) RemoteFindingsForRun(runNID string, token string) (*Findings, error) {
+	uri, err := url.JoinPath("v3", "runs", runNID, "findings")
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	url, err := url.Parse(uri)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	resp, err := client.sendRequest("GET", url.String(), nil, token)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, responseToAPIError(resp)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	var remoteFindings *Findings
+	err = json.Unmarshal(body, &remoteFindings)
+	if err != nil {
+		return nil, errors.WithStack(err)
 	}
 
 	return remoteFindings, nil
