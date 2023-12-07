@@ -132,7 +132,7 @@ func (c *containerRemoteRunCmd) run() error {
 		}
 
 		if c.opts.Interactive {
-			c.opts.Project, err = dialog.ProjectPickerWithOptionNew(projects, "Select the project you want to start a fuzzing run for:", c.apiClient, token)
+			c.opts.Project, err = dialog.ProjectPickerWithOptionNew(projects, "Select the project you want to start a fuzzing run for", c.apiClient, token)
 			if err != nil {
 				return err
 			}

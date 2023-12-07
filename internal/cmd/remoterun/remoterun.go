@@ -218,7 +218,7 @@ func (c *runRemoteCmd) run() error {
 		}
 
 		if c.opts.Interactive {
-			c.opts.ProjectName, err = dialog.ProjectPickerWithOptionNew(projects, "Select the project you want to start a fuzzing run for:", c.apiClient, token)
+			c.opts.ProjectName, err = dialog.ProjectPickerWithOptionNew(projects, "Select the project you want to start a fuzzing run for", c.apiClient, token)
 			if err != nil {
 				return err
 			}
