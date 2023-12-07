@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -21,12 +22,13 @@ import (
 )
 
 type containerRemoteRunOpts struct {
-	bundler.Opts `mapstructure:",squash"`
-	Interactive  bool   `mapstructure:"interactive"`
-	Server       string `mapstructure:"server"` // CI Sense
-	PrintJSON    bool   `mapstructure:"print-json"`
-	Project      string `mapstructure:"project"` // CI Sense
-	Registry     string `mapstructure:"registry"`
+	bundler.Opts    `mapstructure:",squash"`
+	Interactive     bool          `mapstructure:"interactive"`
+	Server          string        `mapstructure:"server"` // CI Sense
+	PrintJSON       bool          `mapstructure:"print-json"`
+	Project         string        `mapstructure:"project"` // CI Sense
+	Registry        string        `mapstructure:"registry"`
+	MonitorDuration time.Duration `mapstructure:"monitor-duration"`
 }
 
 type containerRemoteRunCmd struct {
@@ -102,6 +104,7 @@ func newWithOptions(opts *containerRemoteRunOpts) *cobra.Command {
 		cmdutils.AddEngineArgFlag,
 		cmdutils.AddEnvFlag,
 		cmdutils.AddInteractiveFlag,
+		cmdutils.AddMonitorDurationFlag,
 		cmdutils.AddPrintJSONFlag,
 		cmdutils.AddProjectDirFlag,
 		cmdutils.AddProjectFlag,
@@ -197,6 +200,15 @@ func (c *containerRemoteRunCmd) run() error {
 	log.Successf(`Successfully started fuzzing run. To view findings and coverage, open:
     %s`, addr)
 
+	// if --monitor-duration is set by user, we want to monitor the run for the
+	// duration of the flag.
+	if flagProvided := c.Flags().Lookup("monitor-duration").Changed; flagProvided {
+		err = c.monitorCampaignRun(c.apiClient, response.Run.Nid, token)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -208,4 +220,82 @@ func (c *containerRemoteRunCmd) buildImage() (string, error) {
 	}
 
 	return container.BuildImageFromBundle(bundlePath)
+}
+
+// monitorCampaignRun monitors the status of a campaign run on the CI Sense
+// API. It returns when the run is finished, when it times out, or when a new
+// finding is reported.
+func (c *containerRemoteRunCmd) monitorCampaignRun(apiClient *api.APIClient, runNID string, token string) error {
+	if c.opts.MonitorDuration > 0 {
+		log.Infof("Max monitor duration is %.0f seconds.", c.opts.MonitorDuration.Seconds())
+	}
+	log.Info(`Monitoring will automatically stop when the run finishes, times out, or a finding is reported.
+Monitoring container remote run...`)
+
+	status, err := apiClient.GetContainerRemoteRunStatus(runNID, token)
+	if err != nil {
+		return err
+	}
+
+	if status.Run.Status == "finished" || status.Run.Status == "SUCCEEDED" {
+		log.Successf("Run finished!")
+		return nil
+	}
+
+	// if the monitor duration is set, we want to stop monitoring after the
+	// duration has passed. If the duration is less than the pull interval, we
+	// need to pull every second to make sure we don't miss the end of the run.
+	var ticker *time.Ticker
+	pullInterval := time.Duration(10) * time.Second
+
+	runFor := c.opts.MonitorDuration
+	if runFor < pullInterval {
+		ticker = time.NewTicker(1 * time.Second)
+	} else {
+		ticker = time.NewTicker(pullInterval)
+	}
+	defer ticker.Stop()
+	stopChannel := make(chan struct{})
+
+	// If the duration has passed, we want to stop monitoring.
+	if runFor != 0 {
+		time.AfterFunc(runFor, func() { close(stopChannel) })
+	}
+
+	for {
+		select {
+		case <-ticker.C:
+			status, err := apiClient.GetContainerRemoteRunStatus(runNID, token)
+			if err != nil {
+				return err
+			}
+
+			findings, err := apiClient.RemoteFindingsForRun(runNID, token)
+			if err != nil {
+				return err
+			}
+
+			if len(findings.Findings) > 0 {
+				for idx := range findings.Findings {
+					finding := findings.Findings[idx]
+					log.Successf("Finding found: %s, NID: %s", finding.DisplayName, finding.Nid)
+				}
+				return nil
+			}
+
+			if status.Run.Status == "cancelled" {
+				log.Warn("Run cancelled.")
+				return nil
+			}
+
+			if status.Run.Status == "STOPPED" {
+				// we can exit early if the campaign run has stopped before the
+				// configuration duruation.
+				close(stopChannel)
+			}
+		case <-stopChannel:
+			fmt.Println("Run finished or timed out.")
+			return nil
+		}
+	}
 }

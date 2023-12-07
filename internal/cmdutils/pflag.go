@@ -181,6 +181,16 @@ func AddInteractiveFlag(cmd *cobra.Command) func() {
 	}
 }
 
+func AddMonitorDurationFlag(cmd *cobra.Command) func() {
+	cmd.Flags().Duration("monitor-duration", 0,
+		"Duration of the monitoring of container remote runs, e.g. \"30m\", \"1h\".\n"+
+			"The default is to run indefinitely.\n"+
+			"cifuzz will only start monitoring if this flag is provided.")
+	return func() {
+		ViperMustBindPFlag("monitor-duration", cmd.Flags().Lookup("monitor-duration"))
+	}
+}
+
 func AddPresetFlag(cmd *cobra.Command) func() {
 	cmd.Flags().String("preset", "", "Preset for a given environment to execute coverage with necessary flags.\n"+
 		"We recommend not using this flag with '--format' or '--output' because the preset will set these accordingly.\n"+
