@@ -31,14 +31,13 @@
 	</pluginRepositories>
 
 	<build>
-		<plugins>
-			<plugin>
+		<extensions>
+			<extension>
 				<groupId>com.code-intelligence</groupId>
 				<artifactId>cifuzz-maven-extension</artifactId>
 				<version>1.1.0</version>
-				<extensions>true</extensions>
-			</plugin>
-		</plugins>
+			</extension>
+		</extensions>
 	</build>
 
 	<modules>

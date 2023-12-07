@@ -65,8 +65,8 @@ func TestIntegration_Maven(t *testing.T) {
 
 	shared.AddLinesToFileAtBreakPoint(t,
 		filepath.Join(projectDir, "pom.xml"),
-		extensionLinesToAdd[2:len(extensionLinesToAdd)-2],
-		"</plugins>",
+		extensionLinesToAdd[1:len(extensionLinesToAdd)-1],
+		"<plugins>",
 		false,
 	)
 
