@@ -374,22 +374,11 @@ func LoadFinding(projectDir, findingName string) (*Finding, error) {
 // EnhanceWithErrorDetails adds more details to the finding by parsing the
 // error details file.
 func (f *Finding) EnhanceWithErrorDetails() error {
-	// Read error details from error-details.json
-	errorDetailsPath, err := runfiles.Finder.ErrorDetailsPath()
+	errorDetails, err := ErrorDetailsCollection()
 	if err != nil {
 		return err
 	}
-	content, err := os.ReadFile(errorDetailsPath)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	var errorDetailsFromJSON errorDetailsJSON
-	err = json.Unmarshal(content, &errorDetailsFromJSON)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	for _, d := range errorDetailsFromJSON.ErrorDetails {
+	for _, d := range errorDetails {
 		if (f.MoreDetails != nil && f.MoreDetails.ID == d.ID) ||
 			strings.Contains(
 				strings.ToLower(f.ShortDescriptionColumns()[0]),
@@ -413,4 +402,38 @@ func (f *Finding) EnhanceWithErrorDetails() error {
 	log.Debugf("No error details found for finding %s", f.Name)
 
 	return nil
+}
+
+// ErrorDetailsCollection returns all error details from the error details
+// file.
+func ErrorDetailsCollection() ([]*ErrorDetails, error) {
+	// Read error details from error-details.json
+	errorDetailsPath, err := runfiles.Finder.ErrorDetailsPath()
+	if err != nil {
+		return nil, err
+	}
+	content, err := os.ReadFile(errorDetailsPath)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	var errorDetailsFromJSON errorDetailsJSON
+	err = json.Unmarshal(content, &errorDetailsFromJSON)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return errorDetailsFromJSON.ErrorDetails, nil
+}
+
+// SeverityForErrorID returns the severity for the specified error ID.
+func SeverityForErrorID(id string) (*Severity, error) {
+	errorDetails, err := ErrorDetailsCollection()
+	if err != nil {
+		return nil, err
+	}
+	for _, d := range errorDetails {
+		if d.ID == id {
+			return d.Severity, nil
+		}
+	}
+	return nil, nil
 }
