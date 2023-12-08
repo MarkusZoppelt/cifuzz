@@ -23,6 +23,7 @@ var (
 	rootDirRegex           = regexp.MustCompile("(?m)^cifuzz.rootDir=(?P<rootDir>.*)$")
 	testSourceFoldersRegex = regexp.MustCompile("(?m)^cifuzz.test.source-folders=(?P<testSourceFolders>.*)$")
 	mainSourceFoldersRegex = regexp.MustCompile("(?m)^cifuzz.main.source-folders=(?P<mainSourceFolders>.*)$")
+	jazzerVersionRegex     = regexp.MustCompile("(?m)^cifuzz.deps.jazzer-version=(?P<jazzerVersion>.*)$")
 )
 
 type ParallelOptions struct {
@@ -218,4 +219,24 @@ func GetSourceDir(projectDir string) (string, error) {
 	log.Debugf("Ignoring Maven source directory %s: directory does not exist", sourceDir)
 
 	return "", nil
+}
+
+func GetOverriddenJazzerVersion(projectDir string) string {
+	cmd := runMaven(projectDir, []string{"validate", "-q", "-DcifuzzPrintJazzerVersion"})
+	output, err := cmd.Output()
+	if err != nil {
+		log.Debugf("%s\n", string(output))
+		return ""
+	}
+
+	result := jazzerVersionRegex.FindStringSubmatch(string(output))
+	if result == nil {
+		return ""
+	}
+	jazzerVersion := strings.TrimSpace(result[1])
+	if jazzerVersion != "" {
+		log.Warnf("Overriding default Jazzer version with version %s.", jazzerVersion)
+	}
+
+	return jazzerVersion
 }

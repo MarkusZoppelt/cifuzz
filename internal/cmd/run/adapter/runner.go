@@ -172,6 +172,8 @@ func runJazzer(opts *RunOptions, buildResult *build.BuildResult, reportHandler *
 		return err
 	}
 
+	java.CheckOverriddenJazzerVersion(opts.ProjectDir, opts.BuildSystem)
+
 	var fuzzerRunner FuzzerRunner
 
 	runnerOpts := &jazzer.RunnerOptions{

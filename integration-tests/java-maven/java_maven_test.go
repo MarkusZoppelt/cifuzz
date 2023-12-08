@@ -146,6 +146,10 @@ func TestIntegration_Maven(t *testing.T) {
 		testRunWithConfigFile(t, cifuzzRunner)
 	})
 
+	t.Run("runWithOverriddenJazzerVersion", func(t *testing.T) {
+		testRunWithOverriddenJazzerVersion(t, cifuzzRunner)
+	})
+
 	t.Run("bundle", func(t *testing.T) {
 		// Run cifuzz bundle and verify the contents of the archive.
 		testBundle(t, projectDir, cifuzz, "com.example.FuzzTestCase::myFuzzTest")
@@ -420,6 +424,45 @@ func testRunWithConfigFile(t *testing.T, cifuzzRunner *shared.CIFuzzRunner) {
 		Args:             []string{"--json=false"},
 		UnexpectedOutput: expectedOutputExp,
 	})
+}
+
+func testRunWithOverriddenJazzerVersion(t *testing.T, cifuzzRunner *shared.CIFuzzRunner) {
+	// Add explicit jazzer dependencies to pom.xml
+	explicitDependencies := `
+<dependencies>
+	<dependency>
+		<groupId>com.code-intelligence</groupId>
+		<artifactId>jazzer-junit</artifactId>
+		<version>0.21.1</version>
+		<scope>test</scope>
+	</dependency>
+	<dependency>
+		<groupId>org.junit.jupiter</groupId>
+		<artifactId>junit-jupiter-engine</artifactId>
+		<version>5.9.2</version>
+		<scope>test</scope>
+	</dependency>
+</dependencies>`
+
+	pomFilePath := filepath.Join(cifuzzRunner.DefaultWorkDir, "pom.xml")
+	shared.AddLinesToFileAtBreakPoint(t,
+		pomFilePath,
+		[]string{explicitDependencies},
+		"<build>",
+		false,
+	)
+
+	expectedOutputExp := regexp.MustCompile(`Overriding default Jazzer version with version 0.21.1`)
+	cifuzzRunner.Run(t, &shared.RunOptions{
+		ExpectedOutputs: []*regexp.Regexp{expectedOutputExp},
+	})
+
+	// Remove explicit jazzer dependencies from pom.xml
+	content, err := os.ReadFile(pomFilePath)
+	require.NoError(t, err)
+	s := strings.ReplaceAll(string(content), explicitDependencies, "")
+	err = os.WriteFile(pomFilePath, []byte(s), 0644)
+	require.NoError(t, err)
 }
 
 func testRun(t *testing.T, cifuzzRunner *shared.CIFuzzRunner) {
