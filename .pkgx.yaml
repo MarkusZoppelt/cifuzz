@@ -1,3 +1,15 @@
-dependencies: cmake^3.21 mvn^3.3.1 gradle kotlin nodejs.org@18.17.0 go@1.21.1 lcov@1.16 classic.yarnpkg.com@1.22.21
+dependencies: |
+  bazelisk
+  buildifier
+  classic.yarnpkg.com@1.22.21
+  cmake^3.21
+  go@1.21.1
+  gradle
+  kotlin
+  lcov@1.16
+  llvm.org@16
+  mvn^3.3.1
+  nodejs.org@18.17.0
 env:
   LDFLAGS: "-Wl,-rpath,$HOME/.pkgx"
+  USE_BAZEL_VERSION: "6.4.0"
