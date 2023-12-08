@@ -4,7 +4,7 @@ For this, add the following repository settings to Gradle, e.g. to your ~/.gradl
     CodeIntelligenceRepositoryUsername=<YOUR_USERNAME>
     CodeIntelligenceRepositoryPassword=<YOUR_TOKEN>
 
-You can access your username and private token on the CI Download Portal Configuration page at https://downloads.code-intelligence.com/client/code-intelligence.
+You can access your username and private token on the CI Download Portal Configuration page at https://downloads.code-intelligence.com/client.
 
 To use the CI repository in your project, add it to your build.gradle.kts file:
 

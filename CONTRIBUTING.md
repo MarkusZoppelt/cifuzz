@@ -91,7 +91,7 @@ export CPPFLAGS="-I$(brew --prefix)/opt/llvm/include"
 
 To execute the integration tests, access to the private CI repository is
 required. Please follow the instructions on the [Code Intelligence Download
-Portal](https://downloads.code-intelligence.com/client/code-intelligence)
+Portal](https://downloads.code-intelligence.com/client)
 configuration page to set up your local environment with the currently
 valid access token.
 
