@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -18,17 +19,19 @@ import (
 	"code-intelligence.com/cifuzz/internal/config"
 	"code-intelligence.com/cifuzz/internal/container"
 	"code-intelligence.com/cifuzz/pkg/dialog"
+	"code-intelligence.com/cifuzz/pkg/finding"
 	"code-intelligence.com/cifuzz/pkg/log"
 )
 
 type containerRemoteRunOpts struct {
-	bundler.Opts    `mapstructure:",squash"`
-	Interactive     bool          `mapstructure:"interactive"`
-	Server          string        `mapstructure:"server"` // CI Sense
-	PrintJSON       bool          `mapstructure:"print-json"`
-	Project         string        `mapstructure:"project"` // CI Sense
-	Registry        string        `mapstructure:"registry"`
-	MonitorDuration time.Duration `mapstructure:"monitor-duration"`
+	bundler.Opts       `mapstructure:",squash"`
+	Interactive        bool          `mapstructure:"interactive"`
+	Server             string        `mapstructure:"server"` // CI Sense
+	PrintJSON          bool          `mapstructure:"print-json"`
+	Project            string        `mapstructure:"project"` // CI Sense
+	Registry           string        `mapstructure:"registry"`
+	MonitorDuration    time.Duration `mapstructure:"monitor-duration"`
+	MinFindingSeverity string        `mapstructure:"min-finding-severity"`
 }
 
 type containerRemoteRunCmd struct {
@@ -103,6 +106,7 @@ func newWithOptions(opts *containerRemoteRunOpts) *cobra.Command {
 		cmdutils.AddDockerImageFlagForContainerCommand,
 		cmdutils.AddEngineArgFlag,
 		cmdutils.AddEnvFlag,
+		cmdutils.AddMinFindingSeverityFlag,
 		cmdutils.AddInteractiveFlag,
 		cmdutils.AddMonitorDurationFlag,
 		cmdutils.AddPrintJSONFlag,
@@ -229,8 +233,10 @@ func (c *containerRemoteRunCmd) monitorCampaignRun(apiClient *api.APIClient, run
 	if c.opts.MonitorDuration > 0 {
 		log.Infof("Max monitor duration is %.0f seconds.", c.opts.MonitorDuration.Seconds())
 	}
-	log.Info(`Monitoring will automatically stop when the run finishes, times out, or a finding is reported.
-Monitoring container remote run...`)
+	if c.opts.MinFindingSeverity != "" {
+		log.Infof("Monitoring for findings of severity %s or higher.", c.opts.MinFindingSeverity)
+	}
+	log.Info("Monitoring will automatically stop when the run finishes, times out, or a finding is reported.")
 
 	status, err := apiClient.GetContainerRemoteRunStatus(runNID, token)
 	if err != nil {
@@ -273,6 +279,41 @@ Monitoring container remote run...`)
 			findings, err := apiClient.RemoteFindingsForRun(runNID, token)
 			if err != nil {
 				return err
+			}
+
+			if c.opts.MinFindingSeverity != "" {
+				var filteredFindings []api.Finding
+				for idx := range findings.Findings {
+					f := findings.Findings[idx]
+					severity, err := finding.SeverityForErrorID(f.ErrorID)
+					if err != nil {
+						return err
+					}
+					level := strings.ToUpper(string(severity.Level))
+
+					switch strings.ToUpper(c.opts.MinFindingSeverity) {
+					case "LOW":
+						if level == "LOW" || level == "MEDIUM" || level == "HIGH" || level == "CRITICAL" {
+							filteredFindings = append(filteredFindings, f)
+						}
+					case "MEDIUM":
+						if level == "MEDIUM" || level == "HIGH" || level == "CRITICAL" {
+							filteredFindings = append(filteredFindings, f)
+						}
+					case "HIGH":
+						if level == "HIGH" || level == "CRITICAL" {
+							filteredFindings = append(filteredFindings, f)
+						}
+					case "CRITICAL":
+						if level == "CRITICAL" {
+							filteredFindings = append(filteredFindings, f)
+						}
+					default:
+						filteredFindings = append(filteredFindings, f)
+					}
+
+				}
+				findings.Findings = filteredFindings
 			}
 
 			if len(findings.Findings) > 0 {

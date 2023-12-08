@@ -174,6 +174,15 @@ func AddEnvFlag(cmd *cobra.Command) func() {
 	}
 }
 
+func AddMinFindingSeverityFlag(cmd *cobra.Command) func() {
+	cmd.Flags().String("min-finding-severity", "LOW",
+		"Minimum severity of findings to report, e.g. 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL'.\n"+
+			"Only works with --monitor-duration.")
+	return func() {
+		ViperMustBindPFlag("min-finding-severity", cmd.Flags().Lookup("min-finding-severity"))
+	}
+}
+
 func AddInteractiveFlag(cmd *cobra.Command) func() {
 	cmd.Flags().Bool("interactive", true, "Toggle interactive prompting in the terminal")
 	return func() {
