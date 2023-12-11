@@ -36,12 +36,14 @@ func TestFinding_Save_LoadFinding(t *testing.T) {
 	finding := testFinding()
 	findingDir := filepath.Join(testDir, nameFindingsDir, finding.Name)
 	jsonPath := filepath.Join(findingDir, nameJSONFile)
+	inputFilePath := filepath.Join(findingDir, nameCrashingInput)
 
 	err = finding.Save(testDir)
 	require.NoError(t, err)
 
 	require.DirExists(t, findingDir)
 	require.FileExists(t, jsonPath)
+	require.FileExists(t, inputFilePath)
 
 	// Check that the JSON file exists and contains the expected content
 	bytes, err := os.ReadFile(jsonPath)
@@ -114,5 +116,6 @@ func testFinding() *Finding {
 			"Oops",
 			"The application crashed",
 		},
+		InputData: []byte("input data"),
 	}
 }

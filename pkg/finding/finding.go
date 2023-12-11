@@ -47,7 +47,7 @@ type Finding struct {
 	seedPath string
 
 	// We also store the name of the fuzz test that found this finding so that
-	// we can show it in the finding overview.
+	// we can show it in the finding overview and use it to reproduce the finding.
 	FuzzTest string `json:"fuzz_test,omitempty"`
 }
 
@@ -132,6 +132,26 @@ func (f *Finding) Save(projectDir string) error {
 	err := os.MkdirAll(findingDir, 0o755)
 	if err != nil {
 		return errors.WithStack(err)
+	}
+
+	// write InputData to file if an input file does not already exist
+	inputFilePath := filepath.Join(findingDir, nameCrashingInput)
+	exists, err := fileutil.Exists(inputFilePath)
+	if err != nil {
+		return err
+	}
+	if !exists && len(f.InputData) > 0 {
+		err := os.WriteFile(inputFilePath, f.InputData, 0o644)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		// The path in the InputFile field is expected to be relative to the
+		// project directory
+		inputFilePath, err = filepath.Rel(projectDir, inputFilePath)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+		f.InputFile = inputFilePath
 	}
 
 	err = f.saveJSON(jsonPath)
