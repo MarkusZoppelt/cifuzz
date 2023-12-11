@@ -75,6 +75,10 @@ func TestIntegration_Other(t *testing.T) {
 			// Produce a coverage report for my_fuzz_test
 			testLcovCoverageReport(t, cifuzz, testdata)
 		})
+
+		t.Run("reproduce", func(t *testing.T) {
+			testReproduce(t, cifuzz, testdata)
+		})
 	})
 
 	t.Run("runWithDefaultDict", func(t *testing.T) {
@@ -322,6 +326,29 @@ func testContainerRun(t *testing.T, cifuzzRunner *shared.CIFuzzRunner) {
 			regexp.MustCompile(`^SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior`),
 		},
 	})
+}
+
+func testReproduce(t *testing.T, cifuzz string, dir string) {
+	var err error
+
+	findings := shared.GetFindings(t, cifuzz, dir)
+	require.NotEmpty(t, findings)
+
+	env := cifuzzEnv(dir)
+	cmd := executil.Command(cifuzz, "reproduce", "-v",
+		"--build-command", buildCommand(), findings[0].Name)
+	cmd.Dir = dir
+	cmd.Env, err = envutil.Copy(os.Environ(), env)
+	require.NoError(t, err)
+
+	t.Logf("Command: %s", envutil.QuotedCommandWithEnv(cmd.Args, env))
+	output, err := cmd.CombinedOutput()
+	require.NoError(t, err)
+
+	expectedOutput := regexp.MustCompile(`SUMMARY: AddressSanitizer: heap-buffer-overflow`)
+	seenExpectedOutput := expectedOutput.MatchString(string(output))
+	require.NoError(t, err)
+	require.True(t, seenExpectedOutput)
 }
 
 func cifuzzEnv(workDir string) []string {
