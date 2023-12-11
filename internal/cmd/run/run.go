@@ -281,7 +281,7 @@ func (c *runCmd) run() error {
 		log.Success("You are authenticated.")
 	}
 
-	adapter, err := adapter.NewAdapter(c.opts)
+	adapter, err := adapter.NewAdapter(c.opts.BuildSystem)
 	if err != nil {
 		return err
 	}

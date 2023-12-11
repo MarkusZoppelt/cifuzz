@@ -13,9 +13,9 @@ type Adapter interface {
 	Cleanup()
 }
 
-func NewAdapter(opts *RunOptions) (Adapter, error) {
+func NewAdapter(buildSystem string) (Adapter, error) {
 	var adapter Adapter
-	switch opts.BuildSystem {
+	switch buildSystem {
 	case config.BuildSystemCMake:
 		adapter = &CMakeAdapter{}
 	case config.BuildSystemMaven:
@@ -29,7 +29,7 @@ func NewAdapter(opts *RunOptions) (Adapter, error) {
 	case config.BuildSystemBazel:
 		adapter = &BazelAdapter{}
 	default:
-		return nil, errors.Errorf("Unsupported build system \"%s\"", opts.BuildSystem)
+		return nil, errors.Errorf("Unsupported build system \"%s\"", buildSystem)
 	}
 	return adapter, nil
 }
