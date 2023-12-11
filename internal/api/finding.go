@@ -2,11 +2,13 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
 
-	"code-intelligence.com/cifuzz/pkg/finding"
+	findingPkg "code-intelligence.com/cifuzz/pkg/finding"
+	"code-intelligence.com/cifuzz/pkg/parser/libfuzzer/stacktrace"
 )
 
 type Findings struct {
@@ -52,11 +54,11 @@ type ErrorReport struct {
 	Type      string   `json:"type,omitempty"`
 	InputData []byte   `json:"input_data,omitempty"`
 
-	DebuggingInfo      *DebuggingInfo        `json:"debugging_info,omitempty"`
-	HumanReadableInput string                `json:"human_readable_input,omitempty"`
-	MoreDetails        *finding.ErrorDetails `json:"more_details,omitempty"`
-	Tag                string                `json:"tag,omitempty"`
-	ShortDescription   string                `json:"short_description,omitempty"`
+	DebuggingInfo      *DebuggingInfo           `json:"debugging_info,omitempty"`
+	HumanReadableInput string                   `json:"human_readable_input,omitempty"`
+	MoreDetails        *findingPkg.ErrorDetails `json:"more_details,omitempty"`
+	Tag                string                   `json:"tag,omitempty"`
+	ShortDescription   string                   `json:"short_description,omitempty"`
 }
 
 type DebuggingInfo struct {
@@ -101,7 +103,6 @@ func (client *APIClient) DownloadRemoteFindings(project string, token string) (*
 		// completion
 		Timeout: 5 * time.Second,
 	})
-
 }
 
 // RemoteFindingsForRun uses the v3 API to download all findings for a given
@@ -113,10 +114,9 @@ func (client *APIClient) RemoteFindingsForRun(runNID string, token string) (*Fin
 		Token:        token,
 		PathSegments: []string{"v3", "runs", runNID, "findings"},
 	})
-
 }
 
-func (client *APIClient) UploadFinding(project string, fuzzTarget string, campaignRunName string, fuzzingRunName string, finding *finding.Finding, token string) error {
+func (client *APIClient) UploadFinding(project string, fuzzTarget string, campaignRunName string, fuzzingRunName string, finding *findingPkg.Finding, token string) error {
 	project = ConvertProjectNameForUseWithAPIV1V2(project)
 
 	// loop through the stack trace and create a list of breakpoints
@@ -174,4 +174,73 @@ func (client *APIClient) UploadFinding(project string, fuzzTarget string, campai
 	}
 
 	return nil
+}
+
+func (client *APIClient) GetRemoteFinding(findingName string, project string, token string) (*findingPkg.Finding, error) {
+	findings, err := client.DownloadRemoteFindings(project, token)
+	if err != nil {
+		return nil, err
+	}
+
+	var remoteFinding *Finding
+	for i := range findings.Findings {
+		finding := &findings.Findings[i]
+		if finding.DisplayName == findingName {
+			// if a finding with the same name was already found,
+			// we want to use the one with the latest timestamp
+			if remoteFinding != nil {
+				currentTimestamp, err := time.Parse(time.RFC3339, remoteFinding.Timestamp)
+				if err != nil {
+					continue
+				}
+				timestamp, err := time.Parse(time.RFC3339, finding.Timestamp)
+				if err != nil {
+					continue
+				}
+				if timestamp.After(currentTimestamp) {
+					remoteFinding = finding
+				}
+			} else {
+				remoteFinding = finding
+			}
+		}
+	}
+
+	if remoteFinding != nil {
+		return RemoteToLocalFinding(remoteFinding)
+	}
+
+	return nil, errors.New(fmt.Sprintf("%s not found in CI Sense project: %s", findingName, project))
+}
+
+// RemoteToLocalFinding converts the api response finding to a local finding
+func RemoteToLocalFinding(finding *Finding) (*findingPkg.Finding, error) {
+	timeStamp, err := time.Parse(time.RFC3339, finding.Timestamp)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Could not parse timestamp %s", finding.Timestamp)
+	}
+	localFinding := &findingPkg.Finding{
+		Origin:             "CI Sense",
+		Name:               finding.DisplayName,
+		Type:               findingPkg.ErrorType(finding.ErrorReport.Type),
+		InputData:          finding.ErrorReport.InputData,
+		Logs:               finding.ErrorReport.Logs,
+		Details:            finding.ErrorReport.Details,
+		HumanReadableInput: string(finding.ErrorReport.InputData),
+		MoreDetails:        finding.ErrorReport.MoreDetails,
+		Tag:                finding.ErrorReport.Tag,
+		CreatedAt:          timeStamp,
+		FuzzTest:           finding.FuzzTargetDisplayName,
+	}
+
+	for _, breakPoint := range finding.ErrorReport.DebuggingInfo.BreakPoints {
+		localFinding.StackTrace = append(localFinding.StackTrace, &stacktrace.StackFrame{
+			Function:   breakPoint.Function,
+			SourceFile: breakPoint.SourceFilePath,
+			Line:       breakPoint.Location.Line,
+			Column:     breakPoint.Location.Column,
+		})
+	}
+
+	return localFinding, nil
 }
