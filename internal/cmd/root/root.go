@@ -26,6 +26,7 @@ import (
 	printflagsCmds "code-intelligence.com/cifuzz/internal/cmd/print-flags"
 	reloadCmd "code-intelligence.com/cifuzz/internal/cmd/reload"
 	remoteRunCmd "code-intelligence.com/cifuzz/internal/cmd/remoterun"
+	reproduceCmd "code-intelligence.com/cifuzz/internal/cmd/reproduce"
 	runCmd "code-intelligence.com/cifuzz/internal/cmd/run"
 	"code-intelligence.com/cifuzz/internal/cmdutils"
 	"code-intelligence.com/cifuzz/internal/config"
@@ -111,6 +112,7 @@ func New() (*cobra.Command, error) {
 	rootCmd.AddCommand(coverageCmd.New())
 	rootCmd.AddCommand(findingCmd.New())
 	rootCmd.AddCommand(integrateCmd.New())
+	rootCmd.AddCommand(reproduceCmd.New())
 
 	for _, cmd := range printflagsCmds.New() {
 		rootCmd.AddCommand(cmd)

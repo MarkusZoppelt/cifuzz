@@ -7,6 +7,7 @@
 			"fuzzing_run": "projects/my-project/fuzzing_runs/my-fuzzing-run",
 			"error_report": {
 				"type": "RUNTIME_ERROR",
+				"input_data": "dGVzdA==",
 				"debugging_info": {
 					"break_points": [
 						{
