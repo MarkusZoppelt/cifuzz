@@ -22,7 +22,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pterm/pterm v0.12.71
 	github.com/spf13/cobra v1.8.0
-	github.com/spf13/viper v1.18.0
+	github.com/spf13/viper v1.18.1
 	github.com/u-root/u-root v0.11.1-0.20230701062237-921c08deecd7
 	golang.org/x/net v0.19.0
 	golang.org/x/sync v0.5.0
