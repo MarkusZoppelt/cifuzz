@@ -29,6 +29,8 @@ func TestMain(m *testing.M) {
 	}
 
 	runfiles.Finder = runfiles.RunfilesFinderImpl{InstallDir: sourceDir}
+
+	m.Run()
 }
 
 func TestFindingCmd_FailsIfNoCIFuzzProject(t *testing.T) {

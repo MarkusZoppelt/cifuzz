@@ -5,7 +5,6 @@ import (
 	"os"
 	"strings"
 	"text/tabwriter"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/pterm/pterm"
@@ -21,7 +20,6 @@ import (
 	"code-intelligence.com/cifuzz/pkg/dialog"
 	"code-intelligence.com/cifuzz/pkg/finding"
 	"code-intelligence.com/cifuzz/pkg/log"
-	"code-intelligence.com/cifuzz/pkg/parser/libfuzzer/stacktrace"
 	"code-intelligence.com/cifuzz/util/stringutil"
 )
 
@@ -160,34 +158,11 @@ Skipping remote findings because running in non-interactive mode.`)
 	if remoteAPIFindings != nil {
 		for i := range remoteAPIFindings.Findings {
 			// we access the element via index to avoid copying the struct
-			rf := remoteAPIFindings.Findings[i]
-
-			timeStamp, err := time.Parse(time.RFC3339, rf.Timestamp)
+			rf, err := api.RemoteToLocalFinding(&remoteAPIFindings.Findings[i])
 			if err != nil {
-				return errors.Wrapf(err, "Could not parse timestamp %s", rf.Timestamp)
+				return err
 			}
-			displayName := api.ConvertProjectNameForUseWithAPIV1V2(cmd.opts.Project)
-			remoteFindings = append(remoteFindings, &finding.Finding{
-				Origin:             "CI Sense",
-				Name:               strings.TrimPrefix(rf.Name, fmt.Sprintf("%s/findings/", displayName)),
-				Type:               finding.ErrorType(rf.ErrorReport.Type),
-				InputData:          rf.ErrorReport.InputData,
-				Logs:               rf.ErrorReport.Logs,
-				Details:            rf.ErrorReport.Details,
-				HumanReadableInput: string(rf.ErrorReport.InputData),
-				MoreDetails:        rf.ErrorReport.MoreDetails,
-				Tag:                rf.ErrorReport.Tag,
-				CreatedAt:          timeStamp,
-				FuzzTest:           rf.FuzzTargetDisplayName,
-				StackTrace: []*stacktrace.StackFrame{
-					{
-						Function:   rf.ErrorReport.DebuggingInfo.BreakPoints[0].Function,
-						SourceFile: rf.ErrorReport.DebuggingInfo.BreakPoints[0].SourceFilePath,
-						Line:       rf.ErrorReport.DebuggingInfo.BreakPoints[0].Location.Line,
-						Column:     rf.ErrorReport.DebuggingInfo.BreakPoints[0].Location.Column,
-					},
-				},
-			})
+			remoteFindings = append(remoteFindings, rf)
 		}
 	}
 
@@ -256,10 +231,9 @@ Skipping remote findings because running in non-interactive mode.`)
 	findingName := args[0]
 
 	// check if the finding is a remote finding...
-	for i := range remoteFindings {
-		f := remoteFindings[i]
-		if strings.TrimPrefix(f.Name, fmt.Sprintf("projects/%s/findings/", cmd.opts.Project)) == findingName {
-			return cmd.printFinding(f)
+	for _, remoteFinding := range remoteFindings {
+		if strings.TrimPrefix(remoteFinding.Name, fmt.Sprintf("projects/%s/findings/", cmd.opts.Project)) == findingName {
+			return cmd.printFinding(remoteFinding)
 		}
 	}
 
