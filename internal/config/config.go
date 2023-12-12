@@ -62,6 +62,8 @@ const ProjectConfigFile = "cifuzz.yaml"
 
 const AllowUnsupportedPlatformsEnv = "CIFUZZ_ALLOW_UNSUPPORTED_PLATFORMS"
 
+const GradleMultiProjectWarningMsg = "If this project has subprojects, CI Fuzz should be setup in the subprojects containing the fuzz tests."
+
 //go:embed cifuzz.yaml.tmpl
 var projectConfigTemplate string
 
@@ -220,15 +222,30 @@ func DetermineBuildSystem(projectDir string) (string, error) {
 	return BuildSystemOther, nil
 }
 
-func IsGradleMultiProject(projectDir string) (bool, error) {
+// WarnIfGradleModuleProject searches the project directory for settings.gradle files
+// and prints a warning if they have a line "include(...)" which defines sub projects.
+func WarnIfGradleModuleProject(projectDir string) error {
 	matches, err := zglob.Glob(filepath.Join(projectDir, "settings.{gradle,gradle.kts}"))
 	if err != nil {
-		return false, errors.WithStack(err)
+		return errors.WithStack(err)
 	}
 	if len(matches) == 0 {
-		return false, nil
+		return nil
 	}
-	return true, nil
+
+	for _, match := range matches {
+		bs, err := os.ReadFile(match)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		if strings.Contains(string(bs), "include(") {
+			log.Warn(GradleMultiProjectWarningMsg)
+			return nil
+		}
+	}
+
+	return nil
 }
 
 func DetermineGradleBuildLanguage(projectDir string) (GradleBuildLanguage, error) {

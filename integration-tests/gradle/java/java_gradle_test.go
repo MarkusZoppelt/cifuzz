@@ -17,7 +17,7 @@ import (
 	"code-intelligence.com/cifuzz/integration-tests/shared"
 	gradleBuild "code-intelligence.com/cifuzz/internal/build/java/gradle"
 	builderPkg "code-intelligence.com/cifuzz/internal/builder"
-	initCmd "code-intelligence.com/cifuzz/internal/cmd/init"
+	"code-intelligence.com/cifuzz/internal/config"
 	"code-intelligence.com/cifuzz/pkg/log"
 	"code-intelligence.com/cifuzz/pkg/parser/coverage"
 	"code-intelligence.com/cifuzz/pkg/parser/libfuzzer/stacktrace"
@@ -46,7 +46,7 @@ func TestIntegration_Gradle(t *testing.T) {
 
 	// Execute the init command
 	allStderrLines := cifuzzRunner.Command(t, "init", nil)
-	require.NotContains(t, strings.Join(allStderrLines, " "), initCmd.GradleMultiProjectWarningMsg)
+	require.NotContains(t, strings.Join(allStderrLines, " "), config.GradleMultiProjectWarningMsg)
 	require.FileExists(t, filepath.Join(projectDir, "cifuzz.yaml"))
 
 	// Check that correct error occurs if plugin is missing

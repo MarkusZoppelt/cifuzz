@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	_ "embed"
 	"log"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	logPkg "code-intelligence.com/cifuzz/pkg/log"
 	"code-intelligence.com/cifuzz/util/fileutil"
 )
 
@@ -239,40 +241,50 @@ func TestTestTypeFileNameExtension(t *testing.T) {
 	assert.Equal(t, ".kt", ext)
 }
 
-func TestIsGradleMultiProject_Groovy(t *testing.T) {
+func TestWarnIfGradleModuleProject_Groovy(t *testing.T) {
+	buf := new(bytes.Buffer)
+	logPkg.Output = buf
+
 	projectDir, err := os.MkdirTemp(baseTempDir, "project-")
 	require.NoError(t, err)
 	defer fileutil.Cleanup(projectDir)
 
-	err = fileutil.Touch(filepath.Join(projectDir, "settings.gradle"))
-	require.NoError(t, err, "Failed to create settings.gradle")
-	isGradleMultiProject, err := IsGradleMultiProject(projectDir)
+	path := filepath.Join(projectDir, "settings.gradle")
+	err = fileutil.Touch(path)
+	require.NoErrorf(t, err, "Failed to create %s", path)
+
+	err = WarnIfGradleModuleProject(projectDir)
 	require.NoError(t, err)
-	assert.True(t, isGradleMultiProject)
+	assert.NotContains(t, buf.String(), GradleMultiProjectWarningMsg)
+
+	err = os.WriteFile(path, []byte("include('sub-project')"), 0o644)
+	require.NoErrorf(t, err, "Failed to write to %s", path)
+	err = WarnIfGradleModuleProject(projectDir)
+	require.NoError(t, err)
+	assert.Contains(t, buf.String(), GradleMultiProjectWarningMsg)
 }
 
-func TestIsGradleMultiProject_Kotlin(t *testing.T) {
+func TestWarnIfGradleModuleProject_Kotlin(t *testing.T) {
+	buf := new(bytes.Buffer)
+	logPkg.Output = buf
+
 	projectDir, err := os.MkdirTemp(baseTempDir, "project-")
 	require.NoError(t, err)
 	defer fileutil.Cleanup(projectDir)
 
-	err = fileutil.Touch(filepath.Join(projectDir, "settings.gradle.kts"))
-	require.NoError(t, err, "Failed to create settings.gradle.kts")
-	isGradleMultiProject, err := IsGradleMultiProject(projectDir)
-	require.NoError(t, err)
-	assert.True(t, isGradleMultiProject)
-}
+	path := filepath.Join(projectDir, "settings.gradle.kts")
+	err = fileutil.Touch(path)
+	require.NoErrorf(t, err, "Failed to create %s", path)
 
-func TestIsGradleMultiProject_False(t *testing.T) {
-	projectDir, err := os.MkdirTemp(baseTempDir, "project-")
+	err = WarnIfGradleModuleProject(projectDir)
 	require.NoError(t, err)
-	defer fileutil.Cleanup(projectDir)
+	assert.NotContains(t, buf.String(), GradleMultiProjectWarningMsg)
 
-	err = fileutil.Touch(filepath.Join(projectDir, "build.gradle.kts"))
-	require.NoError(t, err, "Failed to create build.gradle.kts")
-	isGradleMultiProject, err := IsGradleMultiProject(projectDir)
+	err = os.WriteFile(path, []byte("include(\"sub-project\")"), 0o644)
+	require.NoErrorf(t, err, "Failed to write to %s", path)
+	err = WarnIfGradleModuleProject(projectDir)
 	require.NoError(t, err)
-	assert.False(t, isGradleMultiProject)
+	assert.Contains(t, buf.String(), GradleMultiProjectWarningMsg)
 }
 
 func TestEnsureProjectEntry(t *testing.T) {

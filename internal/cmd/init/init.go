@@ -20,10 +20,6 @@ import (
 	"code-intelligence.com/cifuzz/util/fileutil"
 )
 
-const (
-	GradleMultiProjectWarningMsg = "For multi-project builds, you should setup cifuzz in the subprojects containing the fuzz tests."
-)
-
 type options struct {
 	Dir         string
 	BuildSystem string
@@ -188,13 +184,10 @@ func setUpAndMentionBuildSystemIntegrations(dir string, buildSystem string, test
 			return
 		}
 
-		isGradleMultiProject, err := config.IsGradleMultiProject(dir)
+		err = config.WarnIfGradleModuleProject(dir)
 		if err != nil {
 			log.Error(err)
 			return
-		}
-		if isGradleMultiProject {
-			log.Warn(GradleMultiProjectWarningMsg)
 		}
 
 		log.Print(messaging.Instructions(string(gradleBuildLanguage)))
