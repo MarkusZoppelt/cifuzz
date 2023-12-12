@@ -42,6 +42,28 @@ jobs:
           download_token: ${{ secrets.DOWNLOAD_TOKEN }}
           os: ${{ matrix.os }}
 
+      - name: Sign macOS installers
+        if: contains(matrix.os, 'mac')
+        run: |
+          TAR_FILENAME=apple-codesign-0.26.0-macos-universal.tar.gz
+          curl \
+            -L https://github.com/indygreg/apple-platform-rs/releases/download/apple-codesign%2F0.26.0/apple-codesign-0.26.0-macos-universal.tar.gz \
+            --output $TAR_FILENAME
+
+          SHA256SUM=a4e54c0bab1da13bf3a3e75a9c2f075d37492b70304b1374142d4c506be641f7
+          echo "$SHA256SUM  $TAR_FILENAME" | shasum -a 256 --check
+
+          tar xzf $TAR_FILENAME
+
+          CERTIFICATE_PATH=$RUNNER_TEMP/certificate.p12
+          echo -n ${{ secrets.APPLE_CERTIFICATE_BASE64 }} | base64 --decode -o $CERTIFICATE_PATH
+
+          ./apple-codesign-0.26.0-macos-universal/rcodesign sign \
+            --p12-file $CERTIFICATE_PATH \
+            --p12-password ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}\
+            --code-signature-flags runtime \
+            build/bin/cifuzz_installer_macOS*
+
       - name: Upload installer
         uses: actions/upload-artifact@v3
         with:
