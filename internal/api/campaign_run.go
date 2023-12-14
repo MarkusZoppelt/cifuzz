@@ -120,18 +120,9 @@ func (client *APIClient) CreateCampaignRun(project string, token string, fuzzTar
 		return "", "", errors.WithStack(err)
 	}
 
-	url, err := url.JoinPath("/v1", project, "campaign_runs")
-	if err != nil {
-		return "", "", errors.WithStack(err)
-	}
-	resp, err := client.sendRequest("POST", url, body, token)
+	_, err = APIRequest[map[string]json.RawMessage](client, "POST", body, token, "v1", project, "campaign_runs")
 	if err != nil {
 		return "", "", err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return "", "", responseToAPIError(resp)
 	}
 
 	return campaignRunBody.CampaignRun.Name, fuzzingRun.Name, nil

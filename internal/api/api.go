@@ -111,6 +111,35 @@ func NewClient(server string) *APIClient {
 	}
 }
 
+// APIRequest performs a generic API request and returns the response.
+func APIRequest[T any](client *APIClient, method string, body []byte, token string, pathSegments ...string) (*T, error) {
+	urlStruct := &url.URL{}
+	uri := urlStruct.JoinPath(pathSegments...)
+
+	resp, err := client.sendRequest(method, uri.String(), body, token)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, responseToAPIError(resp)
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	var responseData *T
+	err = json.Unmarshal(respBody, &responseData)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return responseData, nil
+}
+
 // ConvertProjectNameFromAPI converts a project name from the API format to a
 // format we can use internally.
 // The API format is projects/<project-name>, where <project-name> is URL encoded.
@@ -295,34 +324,16 @@ func (client *APIClient) UploadBundle(path string, projectName string, token str
 }
 
 func (client *APIClient) StartRemoteFuzzingRun(artifact *Artifact, token string) (string, error) {
-	url, err := url.JoinPath("/v1", artifact.ResourceName+":run")
-	if err != nil {
-		return "", errors.WithStack(err)
-	}
-	resp, err := client.sendRequest("POST", url, nil, token)
+	objmap, err := APIRequest[map[string]json.RawMessage](client, "POST", nil, token, "v1", artifact.ResourceName+":run")
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 {
-		return "", responseToAPIError(resp)
-	}
-
-	// Get the campaign run name from the response
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", errors.WithStack(err)
-	}
-	var objmap map[string]json.RawMessage
-	err = json.Unmarshal(body, &objmap)
-	if err != nil {
-		return "", errors.WithStack(err)
-	}
-	campaignRunNameJSON, ok := objmap["name"]
+	campaignRunNameJSON, ok := (*objmap)["name"]
 	if !ok {
 		return "", errors.Errorf("Server response doesn't include run name: %v", stringutil.PrettyString(objmap))
 	}
+
 	var campaignRunName string
 	err = json.Unmarshal(campaignRunNameJSON, &campaignRunName)
 	if err != nil {

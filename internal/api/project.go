@@ -2,8 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"io"
-	"net/url"
 
 	"github.com/pkg/errors"
 )
@@ -39,37 +37,18 @@ type Location struct {
 type GitPath struct{}
 
 func (client *APIClient) ListProjects(token string) ([]*Project, error) {
-	url, err := url.JoinPath("/v1", "projects")
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-	resp, err := client.sendRequest("GET", url, nil, token)
+	objmap, err := APIRequest[map[string]json.RawMessage](client, "GET", nil, token, "v1", "projects")
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 {
-		return nil, responseToAPIError(resp)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	var objmap map[string]json.RawMessage
-	err = json.Unmarshal(body, &objmap)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
 	var projects []*Project
 	// If the projects field is not present, it means there are no projects
 	// so we return an empty list of projects and no error.
-	if _, ok := objmap["projects"]; !ok {
+	if _, ok := (*objmap)["projects"]; !ok {
 		return []*Project{}, nil
 	}
-	err = json.Unmarshal(objmap["projects"], &projects)
+	err = json.Unmarshal((*objmap)["projects"], &projects)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -103,31 +82,10 @@ func (client *APIClient) CreateProject(name string, token string) (*Project, err
 		return nil, errors.WithStack(err)
 	}
 
-	url, err := url.JoinPath("/v1", "projects")
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-	resp, err := client.sendRequest("POST", url, body, token)
+	projectResponse, err := APIRequest[ProjectResponse](client, "POST", body, token, "v1", "projects")
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return nil, responseToAPIError(resp)
-	}
-
-	body, err = io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	var projectResponse ProjectResponse
-	err = json.Unmarshal(body, &projectResponse)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
 	projectBody.Project.Name = projectResponse.Response.Name
 
 	return &projectBody.Project, nil

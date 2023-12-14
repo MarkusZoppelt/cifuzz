@@ -2,8 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"io"
-	"net/url"
 
 	"github.com/pkg/errors"
 )
@@ -52,8 +50,6 @@ type Job struct {
 // PostContainerRemoteRun posts a new container run to the CI Sense API at /v3/runs.
 // project does not need to have a projects/ prefix and needs to be url encoded.
 func (client *APIClient) PostContainerRemoteRun(image string, project string, fuzzTests []string, token string) (*ContainerRunResponse, error) {
-	var response ContainerRunResponse
-
 	tests := []*FuzzTest{}
 	for _, fuzzTest := range fuzzTests {
 		tests = append(tests, &FuzzTest{Name: fuzzTest})
@@ -75,32 +71,7 @@ func (client *APIClient) PostContainerRemoteRun(image string, project string, fu
 		return nil, errors.WithStack(err)
 	}
 
-	url, err := url.JoinPath("/v3", "runs")
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	resp, err := client.sendRequest("POST", url, body, token)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return nil, responseToAPIError(resp)
-	}
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	err = json.Unmarshal(respBody, &response)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	return &response, nil
+	return APIRequest[ContainerRunResponse](client, "POST", body, token, "v3", "runs")
 }
 
 type ContainerRemoteRunStatus struct {
@@ -113,33 +84,7 @@ type ContainerRemoteRun struct {
 }
 
 // GetContainerRemoteRunStatus gets the status of a container run from the CI
-// Sense API at /v3/runs/{run_nid}.
+// Sense API at /v3/runs/{run_nid}/status.
 func (client *APIClient) GetContainerRemoteRunStatus(runNID string, token string) (*ContainerRemoteRunStatus, error) {
-	url, err := url.JoinPath("/v3", "runs", runNID)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	resp, err := client.sendRequest("GET", url, nil, token)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return nil, responseToAPIError(resp)
-	}
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	var response ContainerRemoteRunStatus
-	err = json.Unmarshal(respBody, &response)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	return &response, nil
+	return APIRequest[ContainerRemoteRunStatus](client, "GET", nil, token, "v3", "runs", runNID, "status")
 }

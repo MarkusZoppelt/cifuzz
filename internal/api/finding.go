@@ -129,38 +129,9 @@ func (client *APIClient) DownloadRemoteFindings(project string, token string) (F
 // RemoteFindingsForRun uses the v3 API to download all findings for a given
 // (container remote-)run.
 func (client *APIClient) RemoteFindingsForRun(runNID string, token string) (*Findings, error) {
-	uri, err := url.JoinPath("v3", "runs", runNID, "findings")
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
+	findings, err := APIRequest[*Findings](client, "GET", nil, token, "v3", "runs", runNID, "findings")
+	return *findings, err
 
-	url, err := url.Parse(uri)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	resp, err := client.sendRequest("GET", url.String(), nil, token)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return nil, responseToAPIError(resp)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	var remoteFindings *Findings
-	err = json.Unmarshal(body, &remoteFindings)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	return remoteFindings, nil
 }
 
 func (client *APIClient) UploadFinding(project string, fuzzTarget string, campaignRunName string, fuzzingRunName string, finding *finding.Finding, token string) error {
@@ -209,18 +180,9 @@ func (client *APIClient) UploadFinding(project string, fuzzTarget string, campai
 		return errors.WithStack(err)
 	}
 
-	url, err := url.JoinPath("/v1", project, "findings")
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	resp, err := client.sendRequest("POST", url, body, token)
+	_, err = APIRequest[map[string]json.RawMessage](client, "POST", body, token, "v1", project, "findings")
 	if err != nil {
 		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return responseToAPIError(resp)
 	}
 
 	return nil
