@@ -70,6 +70,7 @@ var containerRemoteRunTests = &[]e2e.TestCase{
 func TestContainerRemoteRun(t *testing.T) {
 	mockServer := mockserver.New(t)
 	mockServer.Handlers["/v1/projects"] = mockserver.ReturnResponse(t, mockserver.ProjectsJSON)
+	mockServer.Handlers["/v2/docker_registry/authentication"] = mockserver.ReturnResponse(t, mockserver.ContainerRegstryCredentialsResponse)
 	mockServer.Handlers["/v3/runs"] = mockserver.ReturnResponse(t, mockserver.ContainerRemoteRunResponse)
 	mockServer.Handlers["/v3/runs/run-testtesttesttest/status"] = mockserver.ReturnResponse(t, mockserver.ContainerRemoteRunStatusResponse)
 
