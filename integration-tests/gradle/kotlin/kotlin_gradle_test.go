@@ -159,6 +159,10 @@ func TestIntegration_GradleKotlin(t *testing.T) {
 	t.Run("runWithUpload", func(t *testing.T) {
 		testRunWithUpload(t, cifuzzRunner)
 	})
+
+	t.Run("runWithOverriddenJazzerVersion", func(t *testing.T) {
+		testRunWithoutOverriddenJazzerVersion(t, cifuzzRunner)
+	})
 }
 
 func testRun(t *testing.T, cifuzzRunner *shared.CIFuzzRunner) {
@@ -345,6 +349,27 @@ func testRunWithUpload(t *testing.T, cifuzzRunner *shared.CIFuzzRunner) {
 	cifuzz := cifuzzRunner.CIFuzzPath
 	testdata := cifuzzRunner.DefaultWorkDir
 	shared.TestRunWithUpload(t, testdata, cifuzz, "com.example.FuzzTestCase::myFuzzTest")
+}
+
+func testRunWithoutOverriddenJazzerVersion(t *testing.T, cifuzzRunner *shared.CIFuzzRunner) {
+	explicitDependency := `testImplementation("com.code-intelligence:jazzer-junit:0.21.1")`
+	buildGradlePath := filepath.Join(cifuzzRunner.DefaultWorkDir, "build.gradle.kts")
+	shared.AddLinesToFileAtBreakPoint(t,
+		buildGradlePath,
+		[]string{explicitDependency},
+		"dependencies",
+		true,
+	)
+
+	cifuzzRunner.Run(t, &shared.RunOptions{
+		ExpectedOutputs: []*regexp.Regexp{regexp.MustCompile("Overriding default Jazzer version with version 0.21.1")},
+	})
+
+	content, err := os.ReadFile(buildGradlePath)
+	require.NoError(t, err)
+	s := strings.ReplaceAll(string(content), explicitDependency, "")
+	err = os.WriteFile(buildGradlePath, []byte(s), 0644)
+	require.NoError(t, err)
 }
 
 func testRunWithoutFuzzTest(t *testing.T, cifuzzRunner *shared.CIFuzzRunner) {

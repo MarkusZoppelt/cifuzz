@@ -28,6 +28,7 @@ var (
 	rootDirRegex           = regexp.MustCompile("(?m)^cifuzz.rootDir=(?P<rootDir>.*)$")
 	testSourceFoldersRegex = regexp.MustCompile("(?m)^cifuzz.test.source-folders=(?P<testSourceFolders>.*)$")
 	mainSourceFoldersRegex = regexp.MustCompile("(?m)^cifuzz.main.source-folders=(?P<mainSourceFolders>.*)$")
+	jazzerVersionRegex     = regexp.MustCompile("(?m)^cifuzz.deps.jazzer-version=(?P<jazzerVersion>.*)$")
 )
 
 func FindGradleWrapper(projectDir string) (string, error) {
@@ -290,4 +291,26 @@ func GetMainSourceSets(projectDir string) ([]string, error) {
 
 	log.Debugf("Found gradle main sources at: %s", sourceSets)
 	return sourceSets, nil
+}
+
+func GetOverriddenJazzerVersion(projectDir string) string {
+	cmd, err := buildGradleCommand(projectDir, []string{"cifuzzPrintJazzerVersion", "-q"})
+	if err != nil {
+		return ""
+	}
+	log.Debugf("Command: %s", cmd.String())
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+
+	result := jazzerVersionRegex.FindStringSubmatch(string(output))
+	if result == nil {
+		return ""
+	}
+	jazzerVersion := strings.TrimSpace(result[1])
+	if jazzerVersion != "" {
+		log.Warnf("Overriding default Jazzer version with version %s.", jazzerVersion)
+	}
+	return jazzerVersion
 }

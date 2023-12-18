@@ -52,7 +52,7 @@ func RootDirectory(projectDir string, buildSystem string) (string, error) {
 
 func CheckOverriddenJazzerVersion(projectDir string, buildSystem string) {
 	if buildSystem == config.BuildSystemGradle {
-		// not yet implemented
+		gradle.GetOverriddenJazzerVersion(projectDir)
 	} else if buildSystem == config.BuildSystemMaven {
 		maven.GetOverriddenJazzerVersion(projectDir)
 	}
