@@ -15,7 +15,7 @@ import (
 	"code-intelligence.com/cifuzz/internal/testutil"
 )
 
-func TestPrintBuildFlags(t *testing.T) {
+func TestIntegration_PrintBuildFlags(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}

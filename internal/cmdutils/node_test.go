@@ -13,7 +13,7 @@ import (
 	"code-intelligence.com/cifuzz/util/fileutil"
 )
 
-func TestValidateNodeFuzzTest(t *testing.T) {
+func TestIntegration_ValidateNodeFuzzTest(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
