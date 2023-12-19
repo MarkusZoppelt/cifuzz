@@ -55,6 +55,12 @@ jobs:
         with:
           go-version: "1.21"
 
+      - name: Configure repository credential
+        uses: ./.github/actions/configure_credentials
+        with:
+          repository_user: ${{ secrets.REPOSITORY_USER }}
+          repository_token: ${{ secrets.REPOSITORY_TOKEN }}
+
       - name: Run unit tests
         run: make test/unit
 

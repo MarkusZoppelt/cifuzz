@@ -1,0 +1,25 @@
+name: "Configure Credentials"
+description: "Create build system specific repository configuration."
+inputs:
+  repository_user:
+    description: "user for the private repository"
+    required: true
+  repository_token:
+    description: "token for the private repository"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Write Maven settings
+      run: |
+        mkdir -p ~/.m2
+        echo "<settings><servers><server><id>code-intelligence</id><username>${{ inputs.repository_user }}</username><password>${{ inputs.repository_token }}</password></server></servers></settings>" > ~/.m2/settings.xml
+      shell: bash
+    - name: Write Gradle settings
+      run: |
+        mkdir -p ~/.gradle
+        echo -e "CodeIntelligenceRepositoryUsername=${{ inputs.repository_user }}\nCodeIntelligenceRepositoryPassword=${{ inputs.repository_token }}" > ~/.gradle/gradle.properties
+      shell: bash
+    - name: Write npm settings
+      run: echo "//gitlab.code-intelligence.com/api/v4/projects/89/packages/npm/:_authToken=${{ inputs.repository_token }}" > ~/.npmrc
+      shell: bash
