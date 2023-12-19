@@ -190,11 +190,20 @@ func AddInteractiveFlag(cmd *cobra.Command) func() {
 	}
 }
 
+func AddMonitorFlag(cmd *cobra.Command) func() {
+	cmd.Flags().Bool("monitor", false,
+		"Monitor the status of the container remote-run on CI Sense.\n"+
+			"The default is to monitor indefinitely.\n"+
+			"Use --monitor-duration to set a maximum duration.")
+	return func() {
+		ViperMustBindPFlag("monitor", cmd.Flags().Lookup("monitor"))
+	}
+}
+
 func AddMonitorDurationFlag(cmd *cobra.Command) func() {
 	cmd.Flags().Duration("monitor-duration", 0,
 		"Duration of the monitoring of container remote runs, e.g. \"30m\", \"1h\".\n"+
-			"The default is to run indefinitely.\n"+
-			"cifuzz will only start monitoring if this flag is provided.")
+			"Only works if --monitor is used.")
 	return func() {
 		ViperMustBindPFlag("monitor-duration", cmd.Flags().Lookup("monitor-duration"))
 	}

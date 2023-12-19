@@ -30,6 +30,7 @@ type containerRemoteRunOpts struct {
 	PrintJSON          bool          `mapstructure:"print-json"`
 	Project            string        `mapstructure:"project"` // CI Sense
 	Registry           string        `mapstructure:"registry"`
+	Monitor            bool          `mapstructure:"monitor"`
 	MonitorDuration    time.Duration `mapstructure:"monitor-duration"`
 	MinFindingSeverity string        `mapstructure:"min-finding-severity"`
 }
@@ -108,6 +109,7 @@ func newWithOptions(opts *containerRemoteRunOpts) *cobra.Command {
 		cmdutils.AddEnvFlag,
 		cmdutils.AddMinFindingSeverityFlag,
 		cmdutils.AddInteractiveFlag,
+		cmdutils.AddMonitorFlag,
 		cmdutils.AddMonitorDurationFlag,
 		cmdutils.AddPrintJSONFlag,
 		cmdutils.AddProjectDirFlag,
@@ -204,9 +206,8 @@ func (c *containerRemoteRunCmd) run() error {
 	log.Successf(`Successfully started fuzzing run. To view findings and coverage, open:
     %s`, addr)
 
-	// if --monitor-duration is set by user, we want to monitor the run for the
-	// duration of the flag.
-	if flagProvided := c.Flags().Lookup("monitor-duration").Changed; flagProvided {
+	// if --monitor is set by user, we want to monitor the run
+	if c.opts.Monitor {
 		err = c.monitorCampaignRun(c.apiClient, response.Run.Nid, token)
 		if err != nil {
 			return err
