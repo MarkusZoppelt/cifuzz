@@ -34,12 +34,13 @@ func main() {
 	case "gradle-plugin":
 		re := regexp.MustCompile(`("com.code-intelligence.cifuzz"\)? version ")(?P<version>\d+.\d+.\d+.*)(")`)
 		paths := []string{
-			"examples/gradle/build.gradle",
 			"examples/gradle-kotlin/build.gradle.kts",
 			"examples/gradle-multi/testsuite/build.gradle.kts",
+			"examples/gradle/build.gradle",
+			// integration-test projects are updated dynamically in the tests
+			"internal/bundler/testdata/jazzer/gradle/multi-custom/testsuite/build.gradle.kts",
 			"pkg/messaging/instructions/gradle",
 			"pkg/messaging/instructions/gradlekotlin",
-			"internal/bundler/testdata/jazzer/gradle/multi-custom/testsuite/build.gradle.kts",
 			"test/projects/gradle/app/build.gradle.kts",
 			"test/projects/gradle/testsuite/build.gradle.kts",
 		}
