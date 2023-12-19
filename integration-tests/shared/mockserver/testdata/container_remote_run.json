@@ -1,6 +1,6 @@
 {
 	"run": {
-		"nid": "run-RYRCYR0J5Qpo",
+		"nid": "run-testtesttesttest",
 		"image": "my-cifuzz-tests:latest",
 		"fuzz_tests": [
 			{

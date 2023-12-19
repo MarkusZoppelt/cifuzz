@@ -1,0 +1,33 @@
+{
+	"findings": [
+		{
+			"job_nid": "job-testtesttesttest",
+			"nid": "fdn-testtesttesttest",
+			"input_data": "deadbeefdeadbeef",
+			"run_nid": "run-testtesttesttest",
+			"error_id": "global_buffer_overflow",
+			"display_name": "test_finding",
+			"logs": ["line n", "line n+1"],
+			"state": "verified",
+			"created_at": "2019-01-01T00:00:00Z",
+			"first_seen_finding": "fdn-a111",
+			"issue_tracker_link": "http://jira.com/APP-420",
+			"project_nid": "prj-testtesttesttest",
+			"stacktrace": [
+				{
+					"file": "MyClass.java",
+					"function": "fuzzMyCode",
+					"line": 23,
+					"column": 8
+				}
+			]
+		}
+	],
+	"links": [
+		{
+			"href": "/v3/jobs/job-testtesttesttest/config",
+			"rel": "config",
+			"method": "GET"
+		}
+	]
+}
