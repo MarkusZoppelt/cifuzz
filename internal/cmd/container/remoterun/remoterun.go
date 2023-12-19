@@ -32,6 +32,7 @@ type containerRemoteRunOpts struct {
 	Registry           string        `mapstructure:"registry"`
 	Monitor            bool          `mapstructure:"monitor"`
 	MonitorDuration    time.Duration `mapstructure:"monitor-duration"`
+	MonitorInterval    time.Duration `mapstructure:"monitor-interval"`
 	MinFindingSeverity string        `mapstructure:"min-finding-severity"`
 }
 
@@ -111,6 +112,7 @@ func newWithOptions(opts *containerRemoteRunOpts) *cobra.Command {
 		cmdutils.AddInteractiveFlag,
 		cmdutils.AddMonitorFlag,
 		cmdutils.AddMonitorDurationFlag,
+		cmdutils.AddMonitorIntervalFlag,
 		cmdutils.AddPrintJSONFlag,
 		cmdutils.AddProjectDirFlag,
 		cmdutils.AddProjectFlag,
@@ -253,13 +255,12 @@ func (c *containerRemoteRunCmd) monitorCampaignRun(apiClient *api.APIClient, run
 	// duration has passed. If the duration is less than the pull interval, we
 	// need to pull every second to make sure we don't miss the end of the run.
 	var ticker *time.Ticker
-	pullInterval := time.Duration(10) * time.Second
 
 	runFor := c.opts.MonitorDuration
-	if runFor < pullInterval {
+	if runFor < c.opts.MonitorInterval {
 		ticker = time.NewTicker(1 * time.Second)
 	} else {
-		ticker = time.NewTicker(pullInterval)
+		ticker = time.NewTicker(c.opts.MonitorInterval)
 	}
 	defer ticker.Stop()
 	stopChannel := make(chan struct{})

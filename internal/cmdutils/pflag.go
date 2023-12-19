@@ -2,6 +2,7 @@ package cmdutils
 
 import (
 	"runtime"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -206,6 +207,15 @@ func AddMonitorDurationFlag(cmd *cobra.Command) func() {
 			"Only works if --monitor is used.")
 	return func() {
 		ViperMustBindPFlag("monitor-duration", cmd.Flags().Lookup("monitor-duration"))
+	}
+}
+
+func AddMonitorIntervalFlag(cmd *cobra.Command) func() {
+	cmd.Flags().Duration("monitor-interval", time.Duration(10*time.Second),
+		"Interval between checks of the container remote run status, e.g. \"10s\", \"1m\".\n"+
+			"Only works if --monitor is used.")
+	return func() {
+		ViperMustBindPFlag("monitor-interval", cmd.Flags().Lookup("monitor-interval"))
 	}
 }
 
