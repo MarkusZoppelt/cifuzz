@@ -32,3 +32,4 @@ code-intelligence.com/cifuzz/internal/ldd
 code-intelligence.com/cifuzz/internal/bundler/archive
 code-intelligence.com/cifuzz/integration-tests/shared/mockserver
 code-intelligence.com/cifuzz/internal/build
+code-intelligence.com/cifuzz/internal/cmd/reproduce
