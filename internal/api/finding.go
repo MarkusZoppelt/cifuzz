@@ -2,8 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"io"
-	"net/url"
 	"time"
 
 	"github.com/pkg/errors"
@@ -90,47 +88,31 @@ type Severity struct {
 }
 
 // DownloadRemoteFindings downloads all remote findings for a given project from CI Sense.
-func (client *APIClient) DownloadRemoteFindings(project string, token string) (Findings, error) {
+func (client *APIClient) DownloadRemoteFindings(project string, token string) (*Findings, error) {
 	project = ConvertProjectNameForUseWithAPIV1V2(project)
 
-	remoteFindings := Findings{}
+	return APIRequest[Findings](&RequestConfig{
+		Client:       client,
+		Method:       "GET",
+		Token:        token,
+		PathSegments: []string{"v1", project, "findings"},
+		// setting a timeout of 5 seconds for the request, since we don't want to
+		// wait too long, especially when we need to await this request for command
+		// completion
+		Timeout: 5 * time.Second,
+	})
 
-	url, err := url.JoinPath("v1", project, "findings")
-	if err != nil {
-		return remoteFindings, errors.WithStack(err)
-	}
-
-	// setting a timeout of 5 seconds for the request, since we don't want to
-	// wait too long, especially when we need to await this request for command
-	// completion
-	resp, err := client.sendRequestWithTimeout("GET", url, nil, token, 5*time.Second)
-	if err != nil {
-		return remoteFindings, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return remoteFindings, responseToAPIError(resp)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return remoteFindings, errors.WithStack(err)
-	}
-
-	err = json.Unmarshal(body, &remoteFindings)
-	if err != nil {
-		return remoteFindings, errors.WithStack(err)
-	}
-
-	return remoteFindings, nil
 }
 
 // RemoteFindingsForRun uses the v3 API to download all findings for a given
 // (container remote-)run.
 func (client *APIClient) RemoteFindingsForRun(runNID string, token string) (*Findings, error) {
-	findings, err := APIRequest[*Findings](client, "GET", nil, token, "v3", "runs", runNID, "findings")
-	return *findings, err
+	return APIRequest[Findings](&RequestConfig{
+		Client:       client,
+		Method:       "GET",
+		Token:        token,
+		PathSegments: []string{"v3", "runs", runNID, "findings"},
+	})
 
 }
 
@@ -180,7 +162,13 @@ func (client *APIClient) UploadFinding(project string, fuzzTarget string, campai
 		return errors.WithStack(err)
 	}
 
-	_, err = APIRequest[map[string]json.RawMessage](client, "POST", body, token, "v1", project, "findings")
+	_, err = APIRequest[map[string]json.RawMessage](&RequestConfig{
+		Client:       client,
+		Method:       "POST",
+		Body:         body,
+		Token:        token,
+		PathSegments: []string{"v1", project, "findings"},
+	})
 	if err != nil {
 		return err
 	}

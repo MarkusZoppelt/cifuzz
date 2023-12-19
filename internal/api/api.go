@@ -111,12 +111,28 @@ func NewClient(server string) *APIClient {
 	}
 }
 
-// APIRequest performs a generic API request and returns the response.
-func APIRequest[T any](client *APIClient, method string, body []byte, token string, pathSegments ...string) (*T, error) {
-	urlStruct := &url.URL{}
-	uri := urlStruct.JoinPath(pathSegments...)
+type RequestConfig struct {
+	Client       *APIClient
+	Token        string
+	Method       string
+	Body         []byte
+	PathSegments []string
+	Timeout      time.Duration
+}
 
-	resp, err := client.sendRequest(method, uri.String(), body, token)
+// APIRequest performs a generic API request and returns the response.
+func APIRequest[T any](conf *RequestConfig) (*T, error) {
+	urlStruct := &url.URL{}
+	uri := urlStruct.JoinPath(conf.PathSegments...)
+
+	if conf.Timeout == 0 {
+		// we use 30 seconds as a conservative timeout for the API server to
+		// respond to a request. We might have to revisit this value in the future
+		// after the rollout of our API features.
+		conf.Timeout = 30 * time.Second
+	}
+	resp, err := conf.Client.sendRequest(conf.Method, uri.String(), conf.Body, conf.Token, conf.Timeout)
+
 	if err != nil {
 		return nil, err
 	}
@@ -324,7 +340,12 @@ func (client *APIClient) UploadBundle(path string, projectName string, token str
 }
 
 func (client *APIClient) StartRemoteFuzzingRun(artifact *Artifact, token string) (string, error) {
-	objmap, err := APIRequest[map[string]json.RawMessage](client, "POST", nil, token, "v1", artifact.ResourceName+":run")
+	objmap, err := APIRequest[map[string]json.RawMessage](&RequestConfig{
+		Client:       client,
+		Token:        token,
+		Method:       "POST",
+		PathSegments: []string{"v1", artifact.ResourceName + ":run"},
+	})
 	if err != nil {
 		return "", err
 	}
@@ -343,17 +364,8 @@ func (client *APIClient) StartRemoteFuzzingRun(artifact *Artifact, token string)
 	return campaignRunName, nil
 }
 
-// sendRequest sends a request to the API server with a default timeout of 30 seconds.
-func (client *APIClient) sendRequest(method string, endpoint string, body []byte, token string) (*http.Response, error) {
-	// we use 30 seconds as a conservative timeout for the API server to
-	// respond to a request. We might have to revisit this value in the future
-	// after the rollout of our API features.
-	timeout := 30 * time.Second
-	return client.sendRequestWithTimeout(method, endpoint, body, token, timeout)
-}
-
-// sendRequestWithTimeout sends a request to the API server with a timeout.
-func (client *APIClient) sendRequestWithTimeout(method string, endpoint string, body []byte, token string, timeout time.Duration) (*http.Response, error) {
+// sendRequest sends a request to the API server with a timeout.
+func (client *APIClient) sendRequest(method string, endpoint string, body []byte, token string, timeout time.Duration) (*http.Response, error) {
 	url, err := url.JoinPath(client.Server, endpoint)
 	if err != nil {
 		return nil, errors.WithStack(err)

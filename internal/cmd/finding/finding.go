@@ -110,7 +110,7 @@ func (cmd *findingCmd) run(args []string) error {
 		log.Success("You are authenticated.")
 	}
 
-	var remoteAPIFindings api.Findings
+	var remoteAPIFindings *api.Findings
 
 	if token != "" {
 		log.Info("Note that findings that have already been uploaded to CI Sense will only be shown if you are authenticated and 'project' is set.")
@@ -157,36 +157,38 @@ Skipping remote findings because running in non-interactive mode.`)
 	// store remote findings in a slice of finding.Finding so that we can search
 	// them individually later. These won't be stored on disk.
 	var remoteFindings []*finding.Finding
-	for i := range remoteAPIFindings.Findings {
-		// we access the element via index to avoid copying the struct
-		rf := remoteAPIFindings.Findings[i]
+	if remoteAPIFindings != nil {
+		for i := range remoteAPIFindings.Findings {
+			// we access the element via index to avoid copying the struct
+			rf := remoteAPIFindings.Findings[i]
 
-		timeStamp, err := time.Parse(time.RFC3339, rf.Timestamp)
-		if err != nil {
-			return errors.Wrapf(err, "Could not parse timestamp %s", rf.Timestamp)
-		}
-		displayName := api.ConvertProjectNameForUseWithAPIV1V2(cmd.opts.Project)
-		remoteFindings = append(remoteFindings, &finding.Finding{
-			Origin:             "CI Sense",
-			Name:               strings.TrimPrefix(rf.Name, fmt.Sprintf("%s/findings/", displayName)),
-			Type:               finding.ErrorType(rf.ErrorReport.Type),
-			InputData:          rf.ErrorReport.InputData,
-			Logs:               rf.ErrorReport.Logs,
-			Details:            rf.ErrorReport.Details,
-			HumanReadableInput: string(rf.ErrorReport.InputData),
-			MoreDetails:        rf.ErrorReport.MoreDetails,
-			Tag:                rf.ErrorReport.Tag,
-			CreatedAt:          timeStamp,
-			FuzzTest:           rf.FuzzTargetDisplayName,
-			StackTrace: []*stacktrace.StackFrame{
-				{
-					Function:   rf.ErrorReport.DebuggingInfo.BreakPoints[0].Function,
-					SourceFile: rf.ErrorReport.DebuggingInfo.BreakPoints[0].SourceFilePath,
-					Line:       rf.ErrorReport.DebuggingInfo.BreakPoints[0].Location.Line,
-					Column:     rf.ErrorReport.DebuggingInfo.BreakPoints[0].Location.Column,
+			timeStamp, err := time.Parse(time.RFC3339, rf.Timestamp)
+			if err != nil {
+				return errors.Wrapf(err, "Could not parse timestamp %s", rf.Timestamp)
+			}
+			displayName := api.ConvertProjectNameForUseWithAPIV1V2(cmd.opts.Project)
+			remoteFindings = append(remoteFindings, &finding.Finding{
+				Origin:             "CI Sense",
+				Name:               strings.TrimPrefix(rf.Name, fmt.Sprintf("%s/findings/", displayName)),
+				Type:               finding.ErrorType(rf.ErrorReport.Type),
+				InputData:          rf.ErrorReport.InputData,
+				Logs:               rf.ErrorReport.Logs,
+				Details:            rf.ErrorReport.Details,
+				HumanReadableInput: string(rf.ErrorReport.InputData),
+				MoreDetails:        rf.ErrorReport.MoreDetails,
+				Tag:                rf.ErrorReport.Tag,
+				CreatedAt:          timeStamp,
+				FuzzTest:           rf.FuzzTargetDisplayName,
+				StackTrace: []*stacktrace.StackFrame{
+					{
+						Function:   rf.ErrorReport.DebuggingInfo.BreakPoints[0].Function,
+						SourceFile: rf.ErrorReport.DebuggingInfo.BreakPoints[0].SourceFilePath,
+						Line:       rf.ErrorReport.DebuggingInfo.BreakPoints[0].Location.Line,
+						Column:     rf.ErrorReport.DebuggingInfo.BreakPoints[0].Location.Column,
+					},
 				},
-			},
-		})
+			})
+		}
 	}
 
 	if len(args) == 0 {

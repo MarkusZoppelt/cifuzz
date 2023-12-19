@@ -172,7 +172,12 @@ func (c *containerRemoteRunCmd) run() error {
 
 	buildPrinter.StopOnSuccess(log.ContainerBuildInProgressSuccessMsg, false)
 
-	registryCredentials, err := api.APIRequest[api.RegistryConfig](c.apiClient, "GET", nil, token, "v2", "docker_registry", "authentication")
+	registryCredentials, err := api.APIRequest[api.RegistryConfig](&api.RequestConfig{
+		Client:       c.apiClient,
+		Method:       "GET",
+		Token:        token,
+		PathSegments: []string{"v2", "docker_registry", "authentication"},
+	})
 	if err != nil {
 		return err
 	}

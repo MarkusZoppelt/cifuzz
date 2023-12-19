@@ -71,7 +71,13 @@ func (client *APIClient) PostContainerRemoteRun(image string, project string, fu
 		return nil, errors.WithStack(err)
 	}
 
-	return APIRequest[ContainerRunResponse](client, "POST", body, token, "v3", "runs")
+	return APIRequest[ContainerRunResponse](&RequestConfig{
+		Client:       client,
+		Method:       "POST",
+		Body:         body,
+		Token:        token,
+		PathSegments: []string{"v3", "runs"},
+	})
 }
 
 type ContainerRemoteRunStatus struct {
@@ -86,5 +92,10 @@ type ContainerRemoteRun struct {
 // GetContainerRemoteRunStatus gets the status of a container run from the CI
 // Sense API at /v3/runs/{run_nid}/status.
 func (client *APIClient) GetContainerRemoteRunStatus(runNID string, token string) (*ContainerRemoteRunStatus, error) {
-	return APIRequest[ContainerRemoteRunStatus](client, "GET", nil, token, "v3", "runs", runNID, "status")
+	return APIRequest[ContainerRemoteRunStatus](&RequestConfig{
+		Client:       client,
+		Method:       "GET",
+		Token:        token,
+		PathSegments: []string{"v3", "runs", runNID, "status"},
+	})
 }

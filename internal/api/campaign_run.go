@@ -120,7 +120,13 @@ func (client *APIClient) CreateCampaignRun(project string, token string, fuzzTar
 		return "", "", errors.WithStack(err)
 	}
 
-	_, err = APIRequest[map[string]json.RawMessage](client, "POST", body, token, "v1", project, "campaign_runs")
+	_, err = APIRequest[map[string]json.RawMessage](&RequestConfig{
+		Client:       client,
+		Method:       "POST",
+		Body:         body,
+		Token:        token,
+		PathSegments: []string{"v1", project, "campaign_runs"},
+	})
 	if err != nil {
 		return "", "", err
 	}

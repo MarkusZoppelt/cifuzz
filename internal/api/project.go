@@ -37,7 +37,12 @@ type Location struct {
 type GitPath struct{}
 
 func (client *APIClient) ListProjects(token string) ([]*Project, error) {
-	objmap, err := APIRequest[map[string]json.RawMessage](client, "GET", nil, token, "v1", "projects")
+	objmap, err := APIRequest[map[string]json.RawMessage](&RequestConfig{
+		Client:       client,
+		Method:       "GET",
+		Token:        token,
+		PathSegments: []string{"v1", "projects"},
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +87,13 @@ func (client *APIClient) CreateProject(name string, token string) (*Project, err
 		return nil, errors.WithStack(err)
 	}
 
-	projectResponse, err := APIRequest[ProjectResponse](client, "POST", body, token, "v1", "projects")
+	projectResponse, err := APIRequest[ProjectResponse](&RequestConfig{
+		Client:       client,
+		Method:       "POST",
+		Body:         body,
+		Token:        token,
+		PathSegments: []string{"v1", "projects"},
+	})
 	if err != nil {
 		return nil, err
 	}
