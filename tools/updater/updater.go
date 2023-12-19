@@ -50,16 +50,17 @@ func main() {
 	case "maven-extension":
 		re := regexp.MustCompile(`(<artifactId>cifuzz-maven-extension<\/artifactId>\s*<version>)(?P<version>\d+.\d+.\d+.*)(<\/version>)`)
 		paths := []string{
-			"integration-tests/java-maven-spring/testdata/.mvn/extensions.xml",
-			"integration-tests/errors/java/testdata/.mvn/extensions.xml",
-			"integration-tests/errors/java/testdata-sql-ldap/.mvn/extensions.xml",
-			"examples/maven-multi/.mvn/extensions.xml",
-			"examples/maven/.mvn/extensions.xml",
-			"test/projects/maven/.mvn/extensions.xml",
-			"internal/bundler/testdata/jazzer/maven/.mvn/extensions.xml",
-			"internal/cmdutils/resolve/testdata/maven/.mvn/extensions.xml",
-			"internal/build/java/maven/testdata/.mvn/extensions.xml",
+			"examples/maven-multi/pom.xml",
+			"examples/maven/pom.xml",
+			"integration-tests/errors/java/testdata-sql-ldap/pom.xml",
+			"integration-tests/errors/java/testdata/pom.xml",
+			// "integration-tests/java-maven/testdata/pom.xml" not required, as it's dynamically updated in the tests
+			"integration-tests/java-maven-spring/testdata/pom.xml",
+			"internal/build/java/maven/testdata/pom.xml",
+			"internal/bundler/testdata/jazzer/maven/pom.xml",
+			"internal/cmdutils/resolve/testdata/maven/pom.xml",
 			"pkg/messaging/instructions/maven",
+			"test/projects/maven/pom.xml",
 		}
 		for _, path := range paths {
 			updateFile(path, *version, re)
