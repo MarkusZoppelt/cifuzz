@@ -34,6 +34,9 @@ var ContainerRemoteRunStatusResponse string
 //go:embed testdata/container_remote_run_findings.json
 var ContainerRemoteRunFindingsResponse string
 
+//go:embed testdata/container_remote_run_no_findings.json
+var ContainerRemoteRunNoFindingsResponse string
+
 type MockServer struct {
 	listener net.Listener
 	Handlers map[string]http.HandlerFunc
