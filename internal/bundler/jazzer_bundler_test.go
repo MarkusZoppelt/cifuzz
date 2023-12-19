@@ -157,7 +157,7 @@ func TestAssembleArtifactsJava_WindowsForwardSlashes(t *testing.T) {
 
 // Testing a gradle project with two fuzz tests in one class
 // and a custom source directory for tests
-func TestIntegration_GradleCustomSrcMultipeTests(t *testing.T) {
+func TestIntegration_GradleCustomSrcMultipleTests(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
