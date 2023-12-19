@@ -383,7 +383,7 @@ func (b *jazzerBundler) fuzzTestIdentifier(runtimeDeps []string) ([]string, []st
 				for _, validFuzzTest := range allValidFuzzTests {
 					targetClass, _ := cmdutils.SeparateTargetClassAndMethod(validFuzzTest)
 					if fuzzTest == targetClass {
-						fuzzTestsInTargetClass = append(fuzzTestsInTargetClass, fuzzTest)
+						fuzzTestsInTargetClass = append(fuzzTestsInTargetClass, validFuzzTest)
 					}
 				}
 				if len(fuzzTestsInTargetClass) == 0 {

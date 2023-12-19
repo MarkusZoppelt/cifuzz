@@ -232,7 +232,7 @@ func TestAssembleArtifacts_TargetMethodValidPath(t *testing.T) {
 	assert.Equal(t, fuzzers[0].Name, "com.example.FuzzTest::myFuzzTest")
 }
 
-func TestBundleAllFuzzTests(t *testing.T) {
+func TestIntegration_BundleAllFuzzTests(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -241,7 +241,7 @@ func TestBundleAllFuzzTests(t *testing.T) {
 		fuzzTargets       []string
 		expectedFuzzTests []string
 	}{
-		{ // No fuzz tests specified
+		{ // No fuzz tests specified, bundle everything
 			fuzzTargets: nil,
 			expectedFuzzTests: []string{
 				"com.example.FuzzTestCase1::myFuzzTest",
