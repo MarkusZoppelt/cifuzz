@@ -40,6 +40,13 @@ func (co *CommandOutput) ErrorContains(expected string) *CommandOutput {
 	return co
 }
 
+func (co *CommandOutput) ErrorNotContains(expected string) *CommandOutput {
+	if strings.Contains(co.Stderr, expected) {
+		require.FailNow(co.t, fmt.Sprintf("stderr contains %q", expected))
+	}
+	return co
+}
+
 func (co *CommandOutput) NoOutput() *CommandOutput {
 	require.Empty(co.t, co.Stdout)
 	return co
