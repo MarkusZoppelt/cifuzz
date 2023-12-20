@@ -26,13 +26,18 @@ import (
 type containerRemoteRunOpts struct {
 	bundler.Opts       `mapstructure:",squash"`
 	Interactive        bool          `mapstructure:"interactive"`
-	Server             string        `mapstructure:"server"` // CI Sense
 	PrintJSON          bool          `mapstructure:"print-json"`
-	Project            string        `mapstructure:"project"` // CI Sense
 	Monitor            bool          `mapstructure:"monitor"`
 	MonitorDuration    time.Duration `mapstructure:"monitor-duration"`
 	MonitorInterval    time.Duration `mapstructure:"monitor-interval"`
 	MinFindingSeverity string        `mapstructure:"min-finding-severity"`
+
+	// CI Sense specific options
+	Server  string `mapstructure:"server"`
+	Project string `mapstructure:"project"`
+
+	// can be set via cifuzz.yaml but is *NOT* added to the cifuzz.yaml.tmpl because we do not want to advertise this feature
+	Registry string `mapstructure:"registry"`
 }
 
 type containerRemoteRunCmd struct {
@@ -109,6 +114,7 @@ func newWithOptions(opts *containerRemoteRunOpts) *cobra.Command {
 		cmdutils.AddPrintJSONFlag,
 		cmdutils.AddProjectDirFlag,
 		cmdutils.AddProjectFlag,
+		cmdutils.AddRegistryFlag,
 		cmdutils.AddSeedCorpusFlag,
 		cmdutils.AddServerFlag,
 		cmdutils.AddTimeoutFlag,
@@ -170,14 +176,27 @@ func (c *containerRemoteRunCmd) run() error {
 
 	buildPrinter.StopOnSuccess(log.ContainerBuildInProgressSuccessMsg, false)
 
-	registryCredentials, err := api.APIRequest[api.RegistryConfig](&api.RequestConfig{
-		Client:       c.apiClient,
-		Method:       "GET",
-		Token:        token,
-		PathSegments: []string{"v2", "docker_registry", "authentication"},
-	})
-	if err != nil {
-		return err
+	var registryCredentials *api.RegistryConfig
+
+	// if the user has set the registry flag, we don't use the API to get the
+	// registry but instead use the local docker config
+	if c.opts.Registry != "" {
+		log.Debugf("Getting registry credentials from local docker config for registry %s", c.opts.Registry)
+		registryCredentials, err = container.UserRegistryConfig(c.opts.Registry)
+		if err != nil {
+			return err
+		}
+	} else {
+		log.Debug("Getting registry credentials from CI Sense")
+		registryCredentials, err = api.APIRequest[api.RegistryConfig](&api.RequestConfig{
+			Client:       c.apiClient,
+			Method:       "GET",
+			Token:        token,
+			PathSegments: []string{"v2", "docker_registry", "authentication"},
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	imageName := fmt.Sprintf("%s/cifuzz/%s", registryCredentials.URL, c.opts.Project)

@@ -244,6 +244,14 @@ func AddProjectDirFlag(cmd *cobra.Command) func() {
 	}
 }
 
+func AddRegistryFlag(cmd *cobra.Command) func() {
+	cmd.Flags().String("registry", "", `The container registry to use for the upload of the container image,
+e.g. ghcr.io/my-org/my-project`)
+	return func() {
+		ViperMustBindPFlag("registry", cmd.Flags().Lookup("registry"))
+	}
+}
+
 func AddResolveSourceFileFlag(cmd *cobra.Command) func() {
 	cmd.Flags().BoolP("resolve", "r", false,
 		"Argument of the command is a path to a source file instead of a test identifier.\n"+
