@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,6 +24,8 @@ func TestIntegration_PrintBuildFlags(t *testing.T) {
 	// Install cifuzz
 	testutil.RegisterTestDepOnCIFuzz()
 	installDir := shared.InstallCIFuzzInTemp(t)
+	installDir, err := filepath.EvalSymlinks(installDir)
+	require.NoError(t, err)
 	cifuzz := builderPkg.CIFuzzExecutablePath(filepath.Join(installDir, "bin"))
 
 	includeDir, err := filepath.Abs(filepath.Join(installDir, "include"))
@@ -102,6 +105,11 @@ func TestIntegration_PrintBuildFlags(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		if runtime.GOOS == "darwin" {
+			tc.expectedOutput, _ = strings.CutSuffix(tc.expectedOutput, "-mllvm -runtime-counter-relocation")
+			tc.expectedOutput = strings.TrimSpace(tc.expectedOutput)
+		}
+
 		args := []string{tc.command}
 		if tc.coverageFlag {
 			args = append(args, "--coverage")
@@ -111,6 +119,6 @@ func TestIntegration_PrintBuildFlags(t *testing.T) {
 		output, err := cmd.Output()
 
 		require.NoError(t, err)
-		assert.Equal(t, tc.expectedOutput, string(output))
+		assert.Equal(t, tc.expectedOutput, strings.TrimSpace(string(output)))
 	}
 }
