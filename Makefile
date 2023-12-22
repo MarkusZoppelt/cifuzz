@@ -212,7 +212,7 @@ test/integration: deps deps/test deps/integration-tests
 	go test -json -v -timeout=20m ./... -run 'TestIntegration.*' 2>&1 | tee gotest.log | gotestfmt -hide all
 
 .PHONY: test/e2e
-test/e2e: deps deps/test build/linux build/windows build-container-image start-container-registry
+test/e2e: deps deps/test build/linux build/windows start-container-registry
 test/e2e: export E2E_TESTS_MATRIX = 1
 test/e2e:
 	go test -json -v ./e2e/... | tee gotest.log | gotestfmt
@@ -278,13 +278,6 @@ site/update:
 	git -C site add -A
 	git -C site commit -m "update docs" || true
 	git -C site push
-
-.PHONY: build-container-image
-build-container-image: export DOCKER_BUILDKIT = 1
-build-container-image: build/linux
-ifneq ($(current_os),windows)
-	docker build --platform linux/amd64 -f docker/cifuzz-base/Dockerfile -t $(image_tag) .
-endif
 
 .PHONY: build-llvm-test-container-image
 build-llvm-test-container-image: export DOCKER_BUILDKIT = 1
