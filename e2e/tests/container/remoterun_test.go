@@ -46,7 +46,8 @@ var containerRemoteRunTests = &[]e2e.TestCase{
 			output.Success().
 				ErrorContains("Created fuzz container image with ID ").
 				ErrorContains("Max monitor duration is 300 seconds.").
-				ErrorContains("Finding found: test_finding, NID: fdn-testtesttesttest")
+				ErrorContains("Finding found: test_finding, NID: fdn-testtesttesttest").
+				NoOutput()
 		},
 	},
 	{

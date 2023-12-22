@@ -157,13 +157,7 @@ func (c *containerRemoteRunCmd) run() error {
 		}
 	}
 
-	buildOutput := c.OutOrStdout()
-	if c.opts.PrintJSON {
-		// We only want JSON output on stdout, so we print the build
-		// output to stderr.
-		buildOutput = c.ErrOrStderr()
-	}
-	buildPrinter := logging.NewBuildPrinter(buildOutput, log.ContainerBuildInProgressMsg)
+	buildPrinter := logging.NewBuildPrinter(c.ErrOrStderr(), log.ContainerBuildInProgressMsg)
 	imageID, err := c.buildImage()
 	if err != nil {
 		buildPrinter.StopOnError(log.ContainerBuildInProgressErrorMsg)
