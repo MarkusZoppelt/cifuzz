@@ -21,9 +21,6 @@ import (
 	"code-intelligence.com/cifuzz/util/fileutil"
 )
 
-//go:embed ensure-cifuzz.sh
-var ensureCifuzzScript string
-
 //go:embed Dockerfile.tmpl
 var dockerfileTemplate string
 
@@ -222,12 +219,6 @@ func copyCifuzz(buildContextDir string) error {
 		if err != nil {
 			return errors.WithStack(err)
 		}
-	}
-
-	ensureCifuzzScriptPath := filepath.Join(buildContextDir, "ensure-cifuzz.sh")
-	err = os.WriteFile(ensureCifuzzScriptPath, []byte(ensureCifuzzScript), 0o755)
-	if err != nil {
-		return errors.WithStack(err)
 	}
 
 	return nil
