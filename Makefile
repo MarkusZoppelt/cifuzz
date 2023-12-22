@@ -83,7 +83,7 @@ deps/integration-tests:
 deps/dev: deps
 	go install github.com/incu6us/goimports-reviser/v2@latest
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2
-	yarn install --silent
+	npm install --silent
 
 
 .PHONY: deps/test

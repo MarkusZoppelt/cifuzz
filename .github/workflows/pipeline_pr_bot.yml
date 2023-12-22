@@ -17,13 +17,13 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18.x
-          cache: yarn
+          cache: npm
 
-      - name: Install deps via yarn
-        run: yarn install --frozen-lockfile
+      - name: Install deps via npm
+        run: npm install --no-save
 
       - name: Execute danger.js
-        run: yarn danger ci
+        run: npx danger ci
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DANGER_GITHUB_API_TOKEN: ${{ secrets.DANGER_GITHUB_API_TOKEN }}
