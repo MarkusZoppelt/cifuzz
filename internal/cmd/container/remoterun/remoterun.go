@@ -341,7 +341,7 @@ func (c *containerRemoteRunCmd) monitorCampaignRun(apiClient *api.APIClient, run
 				close(stopChannel)
 			}
 		case <-stopChannel:
-			fmt.Println("Run finished or timed out.")
+			log.Info("Run finished or timed out.")
 			return nil
 		}
 	}
