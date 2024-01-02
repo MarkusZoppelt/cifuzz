@@ -47,6 +47,10 @@ func main() {
 		for _, path := range paths {
 			updateFile(path, *version, re)
 		}
+
+		re = regexp.MustCompile(`(com.code-intelligence.cifuzz:com.code-intelligence.cifuzz.gradle.plugin:)(?P<version>\d+.\d+.\d+.*)(")`)
+		updateFile("tools/dependency-bundler/bundle-dependencies.sh", *version, re)
+
 	case "maven-extension":
 		re := regexp.MustCompile(`(<artifactId>cifuzz-maven-extension<\/artifactId>\s*<version>)(?P<version>\d+.\d+.\d+.*)(<\/version>)`)
 		paths := []string{
@@ -65,9 +69,17 @@ func main() {
 		for _, path := range paths {
 			updateFile(path, *version, re)
 		}
+
+		re = regexp.MustCompile(`(com.code-intelligence:cifuzz-maven-extension:)(?P<version>\d+.\d+.\d+.*)(")`)
+		updateFile("tools/dependency-bundler/bundle-dependencies.sh", *version, re)
+
 	case "jazzer":
 		re := regexp.MustCompile(`(<artifactId>jazzer-junit<\/artifactId>\s*<version>)(?P<version>\d+.\d+.\d+.*)(<\/version>)`)
 		updateFile("tools/list-fuzz-tests/pom.xml", *version, re)
+
+		re = regexp.MustCompile(`(com.code-intelligence:jazzer-junit:)(?P<version>\d+.\d+.\d+.*)(")`)
+		updateFile("tools/dependency-bundler/bundle-dependencies.sh", *version, re)
+
 	case "jazzerjs":
 		updateJazzerNpm("examples/nodejs", *version)
 		updateJazzerNpm("examples/nodejs-typescript", *version)
