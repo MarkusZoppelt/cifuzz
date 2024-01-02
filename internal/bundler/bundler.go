@@ -157,8 +157,9 @@ func (b *Bundler) determineDockerImageForBundle() string {
 	if dockerImageUsedInBundle == "" {
 		switch b.opts.BuildSystem {
 		case config.BuildSystemCMake, config.BuildSystemBazel, config.BuildSystemOther:
-			// Use default Ubuntu Docker image for CMake, Bazel, and other build systems
-			dockerImageUsedInBundle = "ubuntu:rolling"
+			// Use default cifuzz Ubuntu Docker image for CMake, Bazel, and other build systems
+			// including all needed dependencies
+			dockerImageUsedInBundle = "cifuzz/cifuzz-ubuntu:latest"
 		case config.BuildSystemMaven, config.BuildSystemGradle:
 			// Maven and Gradle should use a Docker image with Java
 			dockerImageUsedInBundle = "eclipse-temurin:20"

@@ -1,4 +1,8 @@
-FROM ubuntu:22.04
+# This image contains the dependencies to run C/C++ fuzz tests with cifuzz.
+# It is uploaded to https://hub.docker.com/r/cifuzz/cifuzz-ubuntu and used
+# as default image for the `cifuzz container` commands (and bundling)
+
+FROM ubuntu:rolling
 
 # Install APT packages with caching set up according to
 # https://docs.docker.com/engine/reference/builder/#example-cache-apt-packages
