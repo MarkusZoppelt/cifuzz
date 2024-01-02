@@ -3,7 +3,6 @@ package shared
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -14,7 +13,6 @@ import (
 	"code-intelligence.com/cifuzz/internal/testutil"
 	"code-intelligence.com/cifuzz/pkg/cicheck"
 	"code-intelligence.com/cifuzz/pkg/log"
-	"code-intelligence.com/cifuzz/util/envutil"
 	"code-intelligence.com/cifuzz/util/fileutil"
 )
 
@@ -90,17 +88,5 @@ func TestContainerRun(t *testing.T, cifuzzRunner *CIFuzzRunner, imageTag string,
 
 	// Check that the LCOV coverage report was created
 	_, err = os.Stat(filepath.Join(outputDir, "coverage.lcov"))
-	require.NoError(t, err)
-}
-
-func BuildDockerImage(t *testing.T, tag string, buildDir string) {
-	var err error
-	cmd := exec.Command("docker", "build", "-t", tag, buildDir)
-	cmd.Env, err = envutil.Setenv(os.Environ(), "DOCKER_BUILDKIT", "1")
-	require.NoError(t, err)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	t.Logf("Command: %s", cmd.String())
-	err = cmd.Run()
 	require.NoError(t, err)
 }
