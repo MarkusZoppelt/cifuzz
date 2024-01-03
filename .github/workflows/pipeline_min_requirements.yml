@@ -25,37 +25,40 @@ jobs:
       - name: Install dependencies
         run: |
           apt update
-          DEBIAN_FRONTEND=noninteractive apt install -y cmake llvm-11 clang-11 lcov openjdk-8-jdk maven subversion curl unzip git
+          DEBIAN_FRONTEND=noninteractive apt install -y cmake=3.16.3-1ubuntu1.20.04.1 llvm-11 clang-11 lcov openjdk-8-jdk maven subversion curl unzip git
+          # make sure using java 1.8/8
+          update-java-alternatives --set java-1.8.0-openjdk-amd64
           ln -s /usr/bin/clang-11 /usr/bin/clang
           ln -s /usr/bin/clang++-11 /usr/bin/clang++
           ln -s /usr/bin/llvm-symbolizer-11 /usr/bin/llvm-symbolizer
           curl --fail --location https://services.gradle.org/distributions/gradle-7.5.1-bin.zip --output /tmp/gradle-7.5.1-bin.zip
           unzip -d /opt/gradle /tmp/gradle-7.5.1-bin.zip
           echo "/opt/gradle/gradle-7.5.1/bin" >> $GITHUB_PATH
-          # to make sure the version from the apt repository is as expected
-          cmake --version | grep 3.16
-          java --version | grep 8
         shell: bash
 
       - name: Install Bazel
         run: |
+          DEBIAN_FRONTEND=noninteractive apt install -y python3-distutils
           curl -L https://github.com/bazelbuild/bazelisk/releases/download/v1.15.0/bazelisk-linux-amd64 -o /usr/bin/bazel
           chmod +x /usr/bin/bazel
 
-      # "$HOME/cifuzz/bin" can be removed as soon as new install path is released
       - name: Download & execute latest installer
         run: |
           sh -c "$(curl -fsSL https://downloads.code-intelligence.com/assets/install.sh)" ${{ secrets.DOWNLOAD_TOKEN }} latest
-          echo "$HOME/cifuzz/bin" >> $GITHUB_PATH
-        # to make sure our install script is compatible to all the shells
-        shell: sh
-
-      - name: Download Example Projects
-        # workaround to just download a single directory from github
-        run: svn export https://github.com/CodeIntelligenceTesting/cifuzz.git/trunk/examples
-        shell: bash
 
       - uses: actions/checkout@v3
+
+      # write settings to project specific file(s) because global configuration is not working
+      - name: Write Gradle settings
+        run: |
+          echo -e "CodeIntelligenceRepositoryUsername=${{ secrets.REPOSITORY_USER }}\nCodeIntelligenceRepositoryPassword=${{ secrets.REPOSITORY_TOKEN }}" > examples/gradle/gradle.properties
+        shell: bash
+
+      # write settings to global file because the container is running as root
+      - name: Write Maven settings
+        run: |
+          echo "<settings><servers><server><id>code-intelligence</id><username>${{ secrets.REPOSITORY_USER }}</username><password>${{ secrets.REPOSITORY_TOKEN }}</password></server></servers></settings>" > /usr/share/maven/conf/settings.xml
+        shell: bash
 
       - name: Run cifuzz examples
         uses: ./.github/actions/run_cifuzz
