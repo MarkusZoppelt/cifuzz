@@ -44,3 +44,17 @@ jobs:
         uses: ./.github/actions/run_cifuzz
         with:
           os: ${{ matrix.os }}
+
+  notification:
+    name: send message to slack notification
+    needs: [test-installer]
+    if: ${{ always() && contains(needs.*.result, 'failure') }}
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Send notification to cifuzz dev channel
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          channel-id: "C064T9ND6AX" # ci-fuzz-devs channel
+          slack-message: "Post release pipeline failed (E2E Installer Test): ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
