@@ -88,9 +88,10 @@ func TestBundleGradle(t *testing.T, lang string, dir string, cifuzz string, args
 	jarPattern := filepath.Join(archiveDir, "runtime_deps", "*.jar")
 	jarMatches, err := zglob.Glob(jarPattern)
 	require.NoError(t, err)
+	t.Logf("Runtime deps %+v", jarMatches)
 	switch lang {
 	case "java":
-		assert.Equal(t, 13, len(jarMatches))
+		assert.Equal(t, 12, len(jarMatches))
 	case "kotlin":
 		assert.Equal(t, 18, len(jarMatches))
 	}

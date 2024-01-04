@@ -70,11 +70,6 @@ func TestIntegration_GradleKotlin(t *testing.T) {
 	pluginID := linesToAdd[3]
 	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "build.gradle.kts"), pluginID, "application", true)
 
-	junitDep := linesToAdd[4]
-	junitTest := linesToAdd[5]
-	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "build.gradle.kts"), junitDep, "application {", false)
-	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "build.gradle.kts"), junitTest, "application {", false)
-
 	// Execute the create command
 	testDir := filepath.Join(
 		"src",
@@ -352,13 +347,15 @@ func testRunWithUpload(t *testing.T, cifuzzRunner *shared.CIFuzzRunner) {
 }
 
 func testRunWithoutOverriddenJazzerVersion(t *testing.T, cifuzzRunner *shared.CIFuzzRunner) {
-	explicitDependency := `testImplementation("com.code-intelligence:jazzer-junit:0.21.1")`
+	explicitDependency := `dependencies {
+  testImplementation("com.code-intelligence:jazzer-junit:0.21.1")
+}`
 	buildGradlePath := filepath.Join(cifuzzRunner.DefaultWorkDir, "build.gradle.kts")
 	shared.AddLinesToFileAtBreakPoint(t,
 		buildGradlePath,
 		[]string{explicitDependency},
-		"dependencies",
-		true,
+		"application {",
+		false,
 	)
 
 	cifuzzRunner.Run(t, &shared.RunOptions{

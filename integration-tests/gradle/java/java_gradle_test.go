@@ -71,11 +71,6 @@ func TestIntegration_Gradle(t *testing.T) {
 	pluginID := linesToAdd[3]
 	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "build.gradle"), pluginID, "id", true)
 
-	junitDep := linesToAdd[4]
-	junitTest := linesToAdd[5]
-	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "build.gradle"), junitDep, "application", false)
-	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "build.gradle"), junitTest, "application", false)
-
 	// Execute the create command
 	testDir := filepath.Join(
 		"src",

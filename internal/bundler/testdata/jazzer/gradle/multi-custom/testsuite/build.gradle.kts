@@ -1,6 +1,6 @@
 plugins {
     id("java-library")
-    id("com.code-intelligence.cifuzz") version "1.11.0"
+    id("com.code-intelligence.cifuzz") version "1.12.0"
 }
 
 repositories {
@@ -21,13 +21,4 @@ sourceSets.getByName("test") {
 
 dependencies {
 	implementation(project(":app"))
-	testImplementation(platform("org.junit:junit-bom:5.10.0"))
-	testImplementation("org.junit.jupiter:junit-jupiter")
-}
-
-tasks.test {
-	useJUnitPlatform()
-	testLogging {
-		events("passed", "skipped", "failed")
-	}
 }

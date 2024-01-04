@@ -38,18 +38,6 @@ You also have to add the CI repository as an additional plugin repository to you
 
 To enable fuzz testing in your project, add our CI Fuzz Gradle plugin to your build.gradle.kts:
 
-    id("com.code-intelligence.cifuzz") version "1.11.0"
+    id("com.code-intelligence.cifuzz") version "1.12.0"
 
-Fuzz test are executed with JUnit 5, which needs to be configured in your project.
-
-    dependencies {
-      testImplementation(platform("org.junit:junit-bom:5.10.0"))
-      testImplementation("org.junit.jupiter:junit-jupiter")
-    }
-
-    tasks.test {
-      useJUnitPlatform()
-      testLogging {
-        events("passed", "skipped", "failed")
-      }
-    }
+Fuzz tests are executed with JUnit 5. If it is not already set up, the plugin will automatically add the required dependencies and configuration to your project.
