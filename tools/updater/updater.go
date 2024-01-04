@@ -24,15 +24,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	_, err := semver.NewVersion(*version)
-	if err != nil {
-		log.Error(errors.WithStack(err))
-		os.Exit(1)
+	if *version != "dev" {
+		_, err := semver.NewVersion(*version)
+		if err != nil {
+			log.Error(errors.WithStack(err))
+			os.Exit(1)
+		}
 	}
 
 	switch *deps {
 	case "gradle-plugin":
-		re := regexp.MustCompile(`("com.code-intelligence.cifuzz"\)? version ")(?P<version>\d+.\d+.\d+.*)(")`)
+		re := regexp.MustCompile(`("com.code-intelligence.cifuzz"\)? version ")(?P<version>\d+.\d+.\d+.*|dev)(")`)
 		paths := []string{
 			"examples/gradle-kotlin/build.gradle.kts",
 			"examples/gradle-multi/testsuite/build.gradle.kts",
@@ -48,14 +50,14 @@ func main() {
 			updateFile(path, *version, re)
 		}
 
-		re = regexp.MustCompile(`(com.code-intelligence.cifuzz:com.code-intelligence.cifuzz.gradle.plugin:)(?P<version>\d+.\d+.\d+.*)(")`)
+		re = regexp.MustCompile(`(com.code-intelligence.cifuzz:com.code-intelligence.cifuzz.gradle.plugin:)(?P<version>\d+.\d+.\d+.*|dev)(")`)
 		updateFile("tools/dependency-bundler/bundle-dependencies.sh", *version, re)
 
-		re = regexp.MustCompile(`(GradlePlugin,\n\s*MinVersion:\s*\*semver\.MustParse\(")(?P<version>\d+.\d+.\d+)(")`)
+		re = regexp.MustCompile(`(GradlePlugin,\n\s*MinVersion:\s*\*semver\.MustParse\(")(?P<version>\d+.\d+.\d+|dev)(")`)
 		updateFile("pkg/dependencies/definitions.go", *version, re)
 
 	case "maven-extension":
-		re := regexp.MustCompile(`(<artifactId>cifuzz-maven-extension<\/artifactId>\s*<version>)(?P<version>\d+.\d+.\d+.*)(<\/version>)`)
+		re := regexp.MustCompile(`(<artifactId>cifuzz-maven-extension<\/artifactId>\s*<version>)(?P<version>\d+.\d+.\d+.*|dev)(<\/version>)`)
 		paths := []string{
 			"examples/maven-multi/pom.xml",
 			"examples/maven/pom.xml",
@@ -73,28 +75,28 @@ func main() {
 			updateFile(path, *version, re)
 		}
 
-		re = regexp.MustCompile(`(com.code-intelligence:cifuzz-maven-extension:)(?P<version>\d+.\d+.\d+.*)(")`)
+		re = regexp.MustCompile(`(com.code-intelligence:cifuzz-maven-extension:)(?P<version>\d+.\d+.\d+.*|dev)(")`)
 		updateFile("tools/dependency-bundler/bundle-dependencies.sh", *version, re)
 
-		re = regexp.MustCompile(`(MavenExtension,\n\s*MinVersion:\s*\*semver\.MustParse\(")(?P<version>\d+.\d+.\d+)(")`)
+		re = regexp.MustCompile(`(MavenExtension,\n\s*MinVersion:\s*\*semver\.MustParse\(")(?P<version>\d+.\d+.\d+|dev)(")`)
 		updateFile("pkg/dependencies/definitions.go", *version, re)
 
 	case "jazzer":
-		re := regexp.MustCompile(`(<artifactId>jazzer-junit<\/artifactId>\s*<version>)(?P<version>\d+.\d+.\d+.*)(<\/version>)`)
+		re := regexp.MustCompile(`(<artifactId>jazzer-junit<\/artifactId>\s*<version>)(?P<version>\d+.\d+.\d+.*|dev)(<\/version>)`)
 		updateFile("tools/list-fuzz-tests/pom.xml", *version, re)
 
-		re = regexp.MustCompile(`(com.code-intelligence:jazzer-junit:)(?P<version>\d+.\d+.\d+.*)(")`)
+		re = regexp.MustCompile(`(com.code-intelligence:jazzer-junit:)(?P<version>\d+.\d+.\d+.*|dev)(")`)
 		updateFile("tools/dependency-bundler/bundle-dependencies.sh", *version, re)
 
 	case "jazzerjs":
 		updateJazzerNpm("examples/nodejs", *version)
 		updateJazzerNpm("examples/nodejs-typescript", *version)
 
-		re := regexp.MustCompile(`(@jazzer\.js\/jest-runner@)(?P<version>\d+.\d+.\d+)`)
+		re := regexp.MustCompile(`(@jazzer\.js\/jest-runner@)(?P<version>\d+.\d+.\d+|dev)`)
 		updateFile("pkg/messaging/instructions/nodejs", *version, re)
 		updateFile("pkg/messaging/instructions/nodets", *version, re)
 
-		re = regexp.MustCompile(`("@jazzer\.js\/jest-runner": "\^)(?P<version>\d+.\d+.\d+)(")`)
+		re = regexp.MustCompile(`("@jazzer\.js\/jest-runner": "\^)(?P<version>\d+.\d+.\d+|dev)(")`)
 		updateFile("integration-tests/errors/nodejs/testdata/package.json", *version, re)
 	default:
 		log.Error(errors.New("unsupported dependency selected"))
