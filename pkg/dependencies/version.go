@@ -26,7 +26,7 @@ var (
 	cmakeRegex  = regexp.MustCompile(`(?m)cmake version (?P<version>\d+\.\d+(\.\d+)?)`)
 	llvmRegex   = regexp.MustCompile(`(?m)LLVM version (?P<version>\d+\.\d+(\.\d+)?)`)
 	javaRegex   = regexp.MustCompile(`(?m)version "(?P<version>\d+(\.\d+\.\d+)*)([_\.]\d+)?"`)
-	gradleRegex = regexp.MustCompile(`(?m)Gradle (?P<version>\d+(\.\d+\.\d+)?)`)
+	gradleRegex = regexp.MustCompile(`(?m)Gradle (?P<version>\d+(\.\d+){0,2})`)
 	nodeRegex   = regexp.MustCompile(`(?m)(?P<version>\d+(\.\d+\.\d+)?)`)
 
 	bazelRegex   = regexp.MustCompile(`(?m)bazel (?P<version>\d+(\.\d+\.\d+)?)`)

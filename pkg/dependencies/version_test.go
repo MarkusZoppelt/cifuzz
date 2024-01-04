@@ -111,6 +111,40 @@ OpenJDK 64-Bit Server VM (build 18+36-2087, mixed mode, sharing)`,
 		Regex:  junitRegex,
 		Output: `.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.9.2/junit-jupiter-engine-5.9.2.jar`,
 	},
+	{
+		Want:  semver.MustParse("6.3.0"),
+		Regex: gradleRegex,
+		Output: `
+------------------------------------------------------------
+Gradle 6.3
+------------------------------------------------------------
+
+Build time:   2020-03-24 19:52:07 UTC
+Revision:     bacd40b727b0130eeac8855ae3f9fd9a0b207c60
+
+Kotlin:       1.3.70
+Groovy:       2.5.10
+Ant:          Apache Ant(TM) version 1.10.7 compiled on September 1 2019
+JVM:          18 (Oracle Corporation 18+36-2087)
+OS:           Linux 6.1.69-1-MANJARO amd64`,
+	},
+	{
+		Want:  semver.MustParse("7.6.3"),
+		Regex: gradleRegex,
+		Output: `
+------------------------------------------------------------
+Gradle 7.6.3
+------------------------------------------------------------
+
+Build time:   2023-10-04 15:59:47 UTC
+Revision:     1694251d59e0d4752d547e1fd5b5020b798a7e71
+
+Kotlin:       1.7.10
+Groovy:       3.0.13
+Ant:          Apache Ant(TM) version 1.10.11 compiled on July 10 2021
+JVM:          18 (Oracle Corporation 18+36-2087)
+OS:           Linux 6.1.69-1-MANJARO amd64`,
+	},
 }
 
 func TestVersionParsing(t *testing.T) {
