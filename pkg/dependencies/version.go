@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 
 	"code-intelligence.com/cifuzz/internal/build/java/gradle"
+	"code-intelligence.com/cifuzz/internal/build/java/maven"
 	"code-intelligence.com/cifuzz/internal/cmdutils"
 	"code-intelligence.com/cifuzz/pkg/log"
 	"code-intelligence.com/cifuzz/pkg/runfiles"
@@ -196,7 +197,22 @@ func gradlePluginVersion(dep *Dependency, projectDir string) (*semver.Version, e
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	log.Debugf("Found %s version %s", GradlePlugin, version)
+	log.Debugf("Found Gradle plugin version %s", version)
+
+	return version, nil
+}
+
+func mavenExtensionVersion(dep *Dependency, projectDir string) (*semver.Version, error) {
+	versionStr, err := maven.GetPluginVersion(projectDir)
+	if err != nil {
+		return nil, err
+	}
+
+	version, err := semver.NewVersion(versionStr)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	log.Debugf("Found Maven extension version %s", version)
 
 	return version, nil
 }

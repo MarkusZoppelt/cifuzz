@@ -1,6 +1,7 @@
 package maven
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -221,4 +222,27 @@ func GetOverriddenJazzerVersion(projectDir string) string {
 	}
 
 	return jazzerVersion
+}
+
+func GetPluginVersion(projectDir string) (string, error) {
+	// not using runMaven() here to avoid multiple log prints of command
+	cmd := exec.Command("mvn", "-B", "--no-transfer-progress", "validate", "-q", "-DcifuzzPrintExtensionVersion")
+	cmd.Dir = projectDir
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
+	output, err := cmd.Output()
+	if err != nil {
+		log.Debugf("Command: %s", cmd.String())
+		_, writeErr := stderr.Write(stderr.Bytes())
+		if writeErr != nil {
+			log.Errorf(errors.WithStack(writeErr), "Failed to write command output to stderr: %v", writeErr.Error())
+		}
+		return "", errors.WithStack(err)
+	}
+
+	if len(output) == 0 {
+		return "", nil
+	}
+	return strings.TrimSpace(strings.TrimPrefix(string(output), "cifuzz.plugin.version=")), nil
 }

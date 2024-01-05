@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 
 	"code-intelligence.com/cifuzz/internal/build/java/gradle"
+	"code-intelligence.com/cifuzz/internal/build/java/maven"
 	"code-intelligence.com/cifuzz/pkg/log"
 )
 
@@ -170,6 +171,23 @@ var deps = Dependencies{
 		GetVersion: mavenVersion,
 		Installed: func(dep *Dependency, projectDir string) bool {
 			return dep.checkFinder(dep.finder.MavenPath)
+		},
+	},
+	MavenExtension: {
+		Key:        MavenExtension,
+		MinVersion: *semver.MustParse("1.2.0"),
+		GetVersion: mavenExtensionVersion,
+		Installed: func(dep *Dependency, projectDir string) bool {
+			version, err := maven.GetPluginVersion(projectDir)
+			if err != nil {
+				log.Errorf(err, "Error while checking for installed Maven extension: %v", err)
+				return false
+			}
+
+			if version == "" {
+				return false
+			}
+			return true
 		},
 	},
 	Gradle: {

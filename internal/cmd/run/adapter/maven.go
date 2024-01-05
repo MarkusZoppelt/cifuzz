@@ -20,6 +20,7 @@ func (r *MavenAdapter) CheckDependencies(projectDir string) error {
 	return dependencies.Check([]dependencies.Key{
 		dependencies.Java,
 		dependencies.Maven,
+		dependencies.MavenExtension,
 	}, projectDir)
 }
 

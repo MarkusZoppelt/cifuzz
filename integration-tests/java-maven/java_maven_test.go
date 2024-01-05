@@ -18,6 +18,7 @@ import (
 	"code-intelligence.com/cifuzz/integration-tests/shared"
 	builderPkg "code-intelligence.com/cifuzz/internal/builder"
 	"code-intelligence.com/cifuzz/internal/testutil"
+	"code-intelligence.com/cifuzz/pkg/dependencies"
 	"code-intelligence.com/cifuzz/pkg/java/sourcemap"
 	"code-intelligence.com/cifuzz/pkg/log"
 	"code-intelligence.com/cifuzz/pkg/parser/coverage"
@@ -50,8 +51,16 @@ func TestIntegration_Maven(t *testing.T) {
 	// Execute the init command
 	// The instructions file for maven includes a snippet we need to add to the .mvn/extensions.xml file.
 	blocks := cifuzzRunner.CommandWithFilterForInstructionBlocks(t, "init", nil)
-
 	assert.FileExists(t, filepath.Join(projectDir, "cifuzz.yaml"))
+
+	// Check that correct error occurs if extension is missing
+	t.Run("runWithoutExtension", func(t *testing.T) {
+		cifuzzRunner.Run(t, &shared.RunOptions{
+			ExpectedOutputs:              []*regexp.Regexp{regexp.MustCompile(fmt.Sprintf(dependencies.MessageMissing, dependencies.MavenExtension))},
+			TerminateAfterExpectedOutput: true,
+			ExpectError:                  true,
+		})
+	})
 
 	repositoryLinesToAdd := blocks[1]
 	extensionLinesToAdd := blocks[2]
