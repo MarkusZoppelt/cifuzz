@@ -145,6 +145,16 @@ Ant:          Apache Ant(TM) version 1.10.11 compiled on July 10 2021
 JVM:          18 (Oracle Corporation 18+36-2087)
 OS:           Linux 6.1.69-1-MANJARO amd64`,
 	},
+	{
+		Want:  semver.MustParse("3.9.6"),
+		Regex: mavenRegex,
+		Output: `
+Apache Maven 3.9.6 (bc0240f3c744dd6b6ec2920b3cd08dcc295161ae)
+Maven home: /opt/homebrew/Cellar/maven/3.9.6/libexec
+Java version: 21.0.1, vendor: Homebrew, runtime: /opt/homebrew/Cellar/openjdk/21.0.1/libexec/openjdk.jdk/Contents/Home
+Default locale: de_DE, platform encoding: UTF-8
+OS name: "mac os x", version: "14.2.1", arch: "aarch64", family: "mac"`,
+	},
 }
 
 func TestVersionParsing(t *testing.T) {
