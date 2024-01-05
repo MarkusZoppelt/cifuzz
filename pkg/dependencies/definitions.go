@@ -66,6 +66,70 @@ var deps = Dependencies{
 			return dep.checkFinder(dep.finder.CMakePath)
 		},
 	},
+	GenHTML: {
+		Key:        GenHTML,
+		MinVersion: *semver.MustParse("0.0.0"),
+		GetVersion: func(dep *Dependency, projectDir string) (*semver.Version, error) {
+			path, err := dep.finder.GenHTMLPath()
+			if err != nil {
+				return nil, err
+			}
+			version, err := genHTMLVersion(path, dep)
+			if err != nil {
+				return nil, err
+			}
+			log.Debugf("Found genHTML version %s in PATH: %s", version, path)
+			return version, nil
+		},
+		Installed: func(dep *Dependency, projectDir string) bool {
+			return dep.checkFinder(dep.finder.GenHTMLPath)
+		},
+	},
+	Gradle: {
+		Key:        Gradle,
+		MinVersion: *semver.MustParse("6.1.0"),
+		GetVersion: gradleVersion,
+		Installed: func(dep *Dependency, projectDir string) bool {
+			if projectDir != "" {
+				// Using the gradlew in the project dir is the preferred way
+				wrapper, err := gradle.FindGradleWrapper(projectDir)
+				if err != nil && !errors.Is(err, os.ErrNotExist) {
+					log.Error(errors.WithMessage(err, "Error while checking for existing 'gradlew' in project dir. Gradle will be checked instead"))
+					return dep.checkFinder(dep.finder.GradlePath)
+				}
+				if wrapper != "" {
+					return true
+				}
+			}
+
+			return dep.checkFinder(dep.finder.GradlePath)
+		},
+	},
+	GradlePlugin: {
+		Key:        GradlePlugin,
+		MinVersion: *semver.MustParse("1.11.0"),
+		GetVersion: gradlePluginVersion,
+		Installed: func(dep *Dependency, projectDir string) bool {
+			version, err := gradle.GetPluginVersion(projectDir)
+			if err != nil {
+				log.Errorf(err, "Error while checking for installed Gradle plugin: %v", err)
+				return false
+			}
+
+			if version == "" {
+				return false
+			}
+			return true
+		},
+	},
+	Java: {
+		Key:        Java,
+		MinVersion: *semver.MustParse("1.8.0"),
+		GetVersion: javaVersion,
+		Installed: func(dep *Dependency, projectDir string) bool {
+			return dep.checkFinder(dep.finder.JavaHomePath)
+		},
+	},
 	LLVMCov: {
 		Key:        LLVMCov,
 		MinVersion: *semver.MustParse("12.0.0"),
@@ -124,47 +188,6 @@ var deps = Dependencies{
 			return dep.checkFinder(dep.finder.LLVMSymbolizerPath)
 		},
 	},
-	GenHTML: {
-		Key:        GenHTML,
-		MinVersion: *semver.MustParse("0.0.0"),
-		GetVersion: func(dep *Dependency, projectDir string) (*semver.Version, error) {
-			path, err := dep.finder.GenHTMLPath()
-			if err != nil {
-				return nil, err
-			}
-			version, err := genHTMLVersion(path, dep)
-			if err != nil {
-				return nil, err
-			}
-			log.Debugf("Found genHTML version %s in PATH: %s", version, path)
-			return version, nil
-		},
-		Installed: func(dep *Dependency, projectDir string) bool {
-			return dep.checkFinder(dep.finder.GenHTMLPath)
-		},
-	},
-	Perl: {
-		Key:        Perl,
-		MinVersion: *semver.MustParse("0.0.0"),
-		GetVersion: func(dep *Dependency, projectDir string) (*semver.Version, error) {
-			ver, err := semver.NewVersion("0.0.0")
-			if err != nil {
-				return nil, errors.WithStack(err)
-			}
-			return ver, nil
-		},
-		Installed: func(dep *Dependency, projectDir string) bool {
-			return dep.checkFinder(dep.finder.PerlPath)
-		},
-	},
-	Java: {
-		Key:        Java,
-		MinVersion: *semver.MustParse("1.8.0"),
-		GetVersion: javaVersion,
-		Installed: func(dep *Dependency, projectDir string) bool {
-			return dep.checkFinder(dep.finder.JavaHomePath)
-		},
-	},
 	Maven: {
 		Key:        Maven,
 		MinVersion: *semver.MustParse("3.3.1"),
@@ -190,49 +213,26 @@ var deps = Dependencies{
 			return true
 		},
 	},
-	Gradle: {
-		Key:        Gradle,
-		MinVersion: *semver.MustParse("6.1.0"),
-		GetVersion: gradleVersion,
-		Installed: func(dep *Dependency, projectDir string) bool {
-			if projectDir != "" {
-				// Using the gradlew in the project dir is the preferred way
-				wrapper, err := gradle.FindGradleWrapper(projectDir)
-				if err != nil && !errors.Is(err, os.ErrNotExist) {
-					log.Error(errors.WithMessage(err, "Error while checking for existing 'gradlew' in project dir. Gradle will be checked instead"))
-					return dep.checkFinder(dep.finder.GradlePath)
-				}
-				if wrapper != "" {
-					return true
-				}
-			}
-
-			return dep.checkFinder(dep.finder.GradlePath)
-		},
-	},
-	GradlePlugin: {
-		Key:        GradlePlugin,
-		MinVersion: *semver.MustParse("1.11.0"),
-		GetVersion: gradlePluginVersion,
-		Installed: func(dep *Dependency, projectDir string) bool {
-			version, err := gradle.GetPluginVersion(projectDir)
-			if err != nil {
-				log.Errorf(err, "Error while checking for installed Gradle plugin: %v", err)
-				return false
-			}
-
-			if version == "" {
-				return false
-			}
-			return true
-		},
-	},
 	Node: {
 		Key:        Node,
 		MinVersion: *semver.MustParse("16.0"),
 		GetVersion: nodeVersion,
 		Installed: func(dep *Dependency, projectDir string) bool {
 			return dep.checkFinder(dep.finder.NodePath)
+		},
+	},
+	Perl: {
+		Key:        Perl,
+		MinVersion: *semver.MustParse("0.0.0"),
+		GetVersion: func(dep *Dependency, projectDir string) (*semver.Version, error) {
+			ver, err := semver.NewVersion("0.0.0")
+			if err != nil {
+				return nil, errors.WithStack(err)
+			}
+			return ver, nil
+		},
+		Installed: func(dep *Dependency, projectDir string) bool {
+			return dep.checkFinder(dep.finder.PerlPath)
 		},
 	},
 	VisualStudio: {
