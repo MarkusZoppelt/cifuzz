@@ -139,6 +139,9 @@ func APIRequest[T any](conf *RequestConfig) (*T, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode == http.StatusRequestTimeout {
+			return nil, WrapConnectionError(errors.WithStack(err))
+		}
 		return nil, responseToAPIError(resp)
 	}
 
