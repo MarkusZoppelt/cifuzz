@@ -13,6 +13,36 @@ import (
 	"code-intelligence.com/cifuzz/internal/api"
 )
 
+var containerRemoteRunWithoutConnectionTests = &[]e2e.TestCase{
+	{
+		Description:   "container remote-run command without connection to CI Sense fails if token is found",
+		Command:       "container remote-run",
+		CIUser:        e2e.LoggedInCIUser,
+		Args:          []string{"com.example.FuzzTestCase::myFuzzTest"},
+		SampleFolder:  []string{"../../../examples/maven"},
+		ToolsRequired: []string{"docker", "java", "maven"},
+		SkipOnOS:      "windows",
+		Assert: func(t *testing.T, output e2e.CommandOutput) {
+			output.Failed().ErrorContains("No connection to CI Sense")
+		},
+	},
+}
+
+var containerRemoteRunInvalidTokenTests = &[]e2e.TestCase{
+	{
+		Description:   "container remote-run command without connection to CI Sense fails if token is found",
+		Command:       "container remote-run",
+		CIUser:        e2e.InvalidTokenCIUser,
+		Args:          []string{"com.example.FuzzTestCase::myFuzzTest"},
+		SampleFolder:  []string{"../../../examples/maven"},
+		ToolsRequired: []string{"docker", "java", "maven"},
+		SkipOnOS:      "windows",
+		Assert: func(t *testing.T, output e2e.CommandOutput) {
+			output.Failed().ErrorContains("Please log in with a valid API access token")
+		},
+	},
+}
+
 var containerRemoteRunTests = &[]e2e.TestCase{
 	{
 		Description: "container remote-run command is available in --help output",
@@ -86,6 +116,22 @@ var containerRemoteRunTests = &[]e2e.TestCase{
 			require.NotEmpty(t, response.Run.FuzzTests)
 		},
 	},
+}
+
+func TestContainerRemoteRunWithoutConnection(t *testing.T) {
+	server := mockserver.New(t)
+	server.Handlers["/v1/projects"] = func(w http.ResponseWriter, req *http.Request) {
+		w.WriteHeader(http.StatusRequestTimeout)
+	}
+
+	e2e.RunTests(t, *containerRemoteRunWithoutConnectionTests, server)
+}
+
+func TestContainerRemoteRunWithInvalidToken(t *testing.T) {
+	server := mockserver.New(t)
+	server.Handlers["/v1/projects"] = mockserver.ReturnResponseIfValidToken(t, "")
+
+	e2e.RunTests(t, *containerRemoteRunInvalidTokenTests, server)
 }
 
 func TestContainerRemoteRun(t *testing.T) {

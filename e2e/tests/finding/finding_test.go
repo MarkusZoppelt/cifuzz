@@ -1,6 +1,7 @@
 package finding_test
 
 import (
+	"net/http"
 	"runtime"
 	"testing"
 
@@ -9,6 +10,32 @@ import (
 	"code-intelligence.com/cifuzz/e2e"
 	"code-intelligence.com/cifuzz/integration-tests/shared/mockserver"
 )
+
+var findingWithoutConnectionTests = &[]e2e.TestCase{
+	{
+		Description:  "finding command without connection to CI Sense runs with a warning if token is found",
+		Command:      "finding",
+		CIUser:       e2e.LoggedInCIUser,
+		SampleFolder: []string{"project-with-empty-cifuzz-yaml"},
+		SkipOnOS:     "windows",
+		Assert: func(t *testing.T, output e2e.CommandOutput) {
+			output.Success().ErrorContains("No connection to CI Sense. Only local findings are shown.")
+		},
+	},
+}
+
+var findingWithInvalidTokenTests = &[]e2e.TestCase{
+	{
+		Description:  "finding command fails with invalid token",
+		Command:      "finding",
+		CIUser:       e2e.InvalidTokenCIUser,
+		SampleFolder: []string{"project-with-empty-cifuzz-yaml"},
+		SkipOnOS:     "windows",
+		Assert: func(t *testing.T, output e2e.CommandOutput) {
+			output.Failed().ErrorContains("Invalid token")
+		},
+	},
+}
 
 var findingTests = &[]e2e.TestCase{
 	{
@@ -59,6 +86,22 @@ var findingTests = &[]e2e.TestCase{
 			assert.Contains(t, output.Stderr, "| CWE: Overflow reads  | https://cwe.mitre.org/data/definitions/125.html                                  |")
 		},
 	},
+}
+
+func TestFindingWithoutConnection(t *testing.T) {
+	server := mockserver.New(t)
+	server.Handlers["/v1/projects"] = func(w http.ResponseWriter, req *http.Request) {
+		w.WriteHeader(http.StatusRequestTimeout)
+	}
+
+	e2e.RunTests(t, *findingWithoutConnectionTests, server)
+}
+
+func TestFindingWithInvalidToken(t *testing.T) {
+	server := mockserver.New(t)
+	server.Handlers["/v1/projects"] = mockserver.ReturnResponseIfValidToken(t, "")
+
+	e2e.RunTests(t, *findingWithInvalidTokenTests, server)
 }
 
 func TestFindingList(t *testing.T) {
