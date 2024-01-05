@@ -78,8 +78,11 @@ func (cov *CoverageGenerator) GenerateCoverageReport() (string, error) {
 		classFilesDir = filepath.Join(cov.ProjectDir, "build", "classes")
 	}
 
+	// TODO: Get the correct path from the build system.
+	sourceFilesDir := filepath.Join(cov.ProjectDir, "src", "main", "java")
+
 	htmlPath := filepath.Join(cov.OutputPath, "html")
-	jacocoXMLPath, err := cov.runJacocoCommand(cliJar, cov.jacocoExecFilePath(), htmlPath, classFilesDir)
+	jacocoXMLPath, err := cov.runJacocoCommand(cliJar, cov.jacocoExecFilePath(), htmlPath, classFilesDir, sourceFilesDir)
 	if err != nil {
 		return "", err
 	}
@@ -163,7 +166,7 @@ func (cov *CoverageGenerator) GenerateCoverageReportInFuzzContainer(jacocoExecFi
 	}
 
 	classFilesDir := "/cifuzz/runtime_deps/target/classes"
-	jacocoXMLFile, err := cov.runJacocoCommand(cliJar, jacocoExecFilePath, "", classFilesDir)
+	jacocoXMLFile, err := cov.runJacocoCommand(cliJar, jacocoExecFilePath, "", classFilesDir, "")
 	if err != nil {
 		return "", err
 	}
@@ -231,7 +234,7 @@ func (cov *CoverageGenerator) jacocoExecFilePath() string {
 	return filepath.Join(cov.OutputPath, fmt.Sprintf("jacoco_%s_%s.exec", cov.FuzzTest, cov.TargetMethod))
 }
 
-func (cov *CoverageGenerator) runJacocoCommand(cliJar, jacocoExecPath, htmlPath, classFilesDir string) (string, error) {
+func (cov *CoverageGenerator) runJacocoCommand(cliJar, jacocoExecPath, htmlPath, classFilesDir, sourceFilesDir string) (string, error) {
 	jacocoXMLPath := filepath.Join(cov.OutputPath, "jacoco.xml")
 
 	args := []string{
@@ -239,6 +242,9 @@ func (cov *CoverageGenerator) runJacocoCommand(cliJar, jacocoExecPath, htmlPath,
 		"report", jacocoExecPath,
 		"--xml", jacocoXMLPath,
 		"--classfiles", classFilesDir,
+	}
+	if sourceFilesDir != "" {
+		args = append(args, "--sourcefiles", sourceFilesDir)
 	}
 	// Set html output path if needed
 	if cov.OutputFormat == coverage.FormatHTML {

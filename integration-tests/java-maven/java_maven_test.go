@@ -184,6 +184,14 @@ func testHTMLCoverageReport(t *testing.T, cifuzz, dir string) {
 	require.NoError(t, err)
 	report := string(reportBytes)
 	require.Contains(t, report, "com.example")
+
+	// Check that the coverage report contains source code for com.example.ExploreMe.
+	exploreMePath := filepath.Join(dir, "report", "html", "com.example", "ExploreMe.java.html")
+	require.FileExists(t, exploreMePath)
+	exploreMeBytes, err := os.ReadFile(exploreMePath)
+	require.NoError(t, err)
+	exploreMe := string(exploreMeBytes)
+	require.Contains(t, exploreMe, "public void exploreMe")
 }
 
 func testJacocoXMLCoverageReport(t *testing.T, cifuzz, dir string) {
