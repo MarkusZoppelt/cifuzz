@@ -206,6 +206,10 @@ variable or by running 'cifuzz login' first.
 func (c *runRemoteCmd) run() error {
 	token, err := auth.EnsureValidToken(c.opts.Server)
 	if err != nil {
+		var connectionError *api.ConnectionError
+		if errors.As(err, &connectionError) {
+			return errors.New("No connection to CI Sense")
+		}
 		return err
 	}
 

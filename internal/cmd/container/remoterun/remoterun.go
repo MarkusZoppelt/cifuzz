@@ -123,6 +123,10 @@ func (c *containerRemoteRunCmd) run() error {
 
 	token, err := auth.EnsureValidToken(c.opts.Server)
 	if err != nil {
+		var connectionError *api.ConnectionError
+		if errors.As(err, &connectionError) {
+			return errors.New("No connection to CI Sense")
+		}
 		return err
 	}
 

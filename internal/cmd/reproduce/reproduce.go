@@ -254,9 +254,20 @@ func (c *reproduceCmd) loadLocalOrRemoteFinding() (*findingPkg.Finding, error) {
 }
 
 func (c *reproduceCmd) downloadRemoteFinding() (*findingPkg.Finding, error) {
+	noConnectionError := errors.New("No connection to CI Sense. Remote finding cannot be downloaded.")
 	token, err := auth.GetValidToken(c.opts.Server)
 	if err != nil {
-		return nil, errors.New("No valid token found.")
+		var connectionError *api.ConnectionError
+		if errors.As(err, &connectionError) {
+			return nil, noConnectionError
+		} else {
+			return nil, err
+		}
+	}
+
+	if token == "" {
+		log.Warnf("No API access token found for server %s. Use cifuzz login to get a token", c.opts.Server)
+		return nil, noConnectionError
 	}
 
 	log.Success("You are authenticated.")

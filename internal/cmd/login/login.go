@@ -88,6 +88,10 @@ func (c *loginCmd) run() error {
 
 		isValid, err := auth.IsValidToken(c.opts.Server, token)
 		if err != nil {
+			var connectionError *api.ConnectionError
+			if errors.As(err, &connectionError) {
+				return errors.New("No connection to CI Sense - Network is unreachable")
+			}
 			return err
 		}
 		if !isValid {
@@ -106,6 +110,10 @@ in interactive mode. You can generate a token here:
 
 	_, err = auth.EnsureValidToken(c.opts.Server)
 	if err != nil {
+		var connectionError *api.ConnectionError
+		if errors.As(err, &connectionError) {
+			return errors.New("No connection to CI Sense - Network is unreachable")
+		}
 		return err
 	}
 
