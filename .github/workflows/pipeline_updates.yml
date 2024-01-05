@@ -1,0 +1,50 @@
+name: Update Pipeline
+
+on:
+  schedule:
+    - cron: "0 7 * * 1-5"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GITLAB_UPDATER_TOKEN: ${{ secrets.GITLAB_UPDATER_TOKEN }}
+
+jobs:
+  update-deps:
+    name: update ${{ matrix.dep }}
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        dep: [gradle-plugin, maven-extension, jazzer, jazzerjs]
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: main
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.21"
+
+      # this is needed as the updater runs `npm install` to keep examples up-to-date
+      - name: Write npm settings
+        if: contains(matrix.dep, 'jazzerjs')
+        run: echo "//gitlab.code-intelligence.com/api/v4/projects/89/packages/npm/:_authToken=${{ secrets.GITLAB_UPDATER_TOKEN }}" > ~/.npmrc
+        shell: bash
+
+      - name: Run updater
+        run: go run ./tools/updater --dependency ${{ matrix.dep }}
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: "chore(deps): update ${{ matrix.dep }}"
+          title: "chore(deps): update ${{ matrix.dep }}"
+          body: "Updating ${{ matrix.dep }} to latest release"
+          draft: false
+          branch: chore-update-${{ matrix.dep }}
+          base: main
