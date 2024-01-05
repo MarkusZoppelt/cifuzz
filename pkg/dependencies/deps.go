@@ -13,7 +13,7 @@ import (
 var errDeps = errors.New(`unable to run command due to missing/invalid dependencies.
 For installation instruction see:
 
-	https://github.com/CodeIntelligenceTesting/cifuzz#installation`)
+	https://docs.code-intelligence.com/ci-fuzz/how-to/ci-fuzz-installation`)
 
 type Key string
 
