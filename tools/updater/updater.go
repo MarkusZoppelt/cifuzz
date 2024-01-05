@@ -37,6 +37,7 @@ func main() {
 		re := regexp.MustCompile(`("com.code-intelligence.cifuzz"\)? version ")(?P<version>\d+.\d+.\d+.*|dev)(")`)
 		paths := []string{
 			"e2e/tests/samples/gradle-default/build.gradle",
+			"e2e/tests/samples/gradle-with-existing-junit/build.gradle",
 			"examples/gradle-kotlin/build.gradle.kts",
 			"examples/gradle-multi/testsuite/build.gradle.kts",
 			"examples/gradle/build.gradle",

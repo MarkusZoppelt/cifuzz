@@ -63,3 +63,14 @@ func (co *CommandOutput) FileExists(path string) *CommandOutput {
 	require.False(co.t, stat.IsDir())
 	return co
 }
+
+func (co *CommandOutput) FileContains(path string, texts []string) *CommandOutput {
+	co.FileExists(path)
+	bytes, err := fs.ReadFile(co.Workdir, path)
+	require.NoError(co.t, err)
+	content := string(bytes)
+	for _, text := range texts {
+		require.Contains(co.t, content, text, "file %q does not contain %q", path, text)
+	}
+	return co
+}

@@ -142,6 +142,7 @@ func runTestCaseInContainer(t *testing.T, ctx context.Context, dockerClient *cli
 
 	// Mount build system configuration files into container to pick up private repository settings.
 	homeDir, err := os.UserHomeDir()
+	require.NoError(t, err)
 	if runtime.GOOS == "windows" {
 		// Windows Containers do not support mounting single files, so mount the whole home directory.
 		containerBinds = append(containerBinds, homeDir+":C:\\Users\\ContainerAdministrator\\")
