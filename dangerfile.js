@@ -1,4 +1,5 @@
 const { danger, warn, markdown } = require("danger");
+const fs = require("fs");
 const { basename, dirname } = require("path");
 
 const goFileFilter = fileName =>
@@ -78,7 +79,9 @@ function missingTestsForModifiedFiles() {
 			const filePath = dirname(x);
 			const testFile = basename(x).replace(".go", "_test.go");
 			return (
-				!modifiedTestFiles.includes(`${filePath}/${testFile}`) && !createdTestFiles.includes(`${filePath}/${testFile}`)
+				!modifiedTestFiles.includes(`${filePath}/${testFile}`) &&
+				fs.existsSync(`${filePath}/${testFile}`) &&
+				!createdTestFiles.includes(`${filePath}/${testFile}`)
 			);
 		});
 
