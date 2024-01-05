@@ -52,11 +52,16 @@ func GetValidToken(server string) (string, error) {
 	}
 
 	isValid, err := IsValidToken(server, token)
-	if err != nil {
+	if err != nil || !isValid {
+		var apiError *api.APIError
+		if errors.As(err, &apiError) {
+			log.Warnf(
+				"API access token for server %s is not valid. Use cifuzz login to get a valid token.",
+				server,
+			)
+			return "", &NoValidTokenError{errors.New("Invalid token")}
+		}
 		return "", err
-	}
-	if !isValid {
-		return "", &NoValidTokenError{errors.New("No valid API access token found")}
 	}
 	return token, nil
 }
@@ -124,7 +129,10 @@ func EnsureValidToken(server string) (string, error) {
 	if token != "" {
 		isValid, err := apiClient.IsTokenValid(token)
 		if err != nil {
-			return "", err
+			var apiError *api.APIError
+			if !errors.As(err, &apiError) {
+				return "", err
+			}
 		}
 		if isValid {
 			log.Success("You are authenticated.")
