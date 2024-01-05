@@ -36,6 +36,7 @@ func main() {
 	case "gradle-plugin":
 		re := regexp.MustCompile(`("com.code-intelligence.cifuzz"\)? version ")(?P<version>\d+.\d+.\d+.*|dev)(")`)
 		paths := []string{
+			"e2e/tests/samples/gradle-default/build.gradle",
 			"examples/gradle-kotlin/build.gradle.kts",
 			"examples/gradle-multi/testsuite/build.gradle.kts",
 			"examples/gradle/build.gradle",
@@ -59,6 +60,7 @@ func main() {
 	case "maven-extension":
 		re := regexp.MustCompile(`(<artifactId>cifuzz-maven-extension<\/artifactId>\s*<version>)(?P<version>\d+.\d+.\d+.*|dev)(<\/version>)`)
 		paths := []string{
+			"e2e/tests/samples/maven-default/pom.xml",
 			"examples/maven-multi/pom.xml",
 			"examples/maven/pom.xml",
 			"integration-tests/errors/java/testdata-sql-ldap/pom.xml",

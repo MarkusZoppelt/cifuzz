@@ -27,7 +27,7 @@ var containerRemoteRunTests = &[]e2e.TestCase{
 		CIUser:        e2e.LoggedInCIUser,
 		Command:       "container remote-run",
 		Args:          []string{" --project test-project com.example.FuzzTestCase::myFuzzTest -v"},
-		SampleFolder:  []string{"../../../examples/maven", "../../../examples/gradle"},
+		SampleFolder:  []string{"maven-default", "gradle-default"},
 		ToolsRequired: []string{"docker", "java", "maven"},
 		SkipOnOS:      "windows",
 		Assert: func(t *testing.T, output e2e.CommandOutput) {
@@ -41,7 +41,7 @@ var containerRemoteRunTests = &[]e2e.TestCase{
 		CIUser:        e2e.LoggedInCIUser,
 		Command:       "container remote-run",
 		Args:          []string{" --project test-project com.example.FuzzTestCase::myFuzzTest --monitor --monitor-duration 5m --monitor-interval 5s -v"},
-		SampleFolder:  []string{"../../../examples/maven"},
+		SampleFolder:  []string{"maven-default"},
 		ToolsRequired: []string{"docker", "java", "maven"},
 		SkipOnOS:      "windows",
 		Assert: func(t *testing.T, output e2e.CommandOutput) {
@@ -57,7 +57,7 @@ var containerRemoteRunTests = &[]e2e.TestCase{
 		CIUser:        e2e.LoggedInCIUser,
 		Command:       "container remote-run",
 		Args:          []string{" --project test-project com.example.FuzzTestCase::myFuzzTest --monitor --monitor-duration 10s --monitor-interval 5s -v"},
-		SampleFolder:  []string{"../../../examples/maven"},
+		SampleFolder:  []string{"maven-default"},
 		ToolsRequired: []string{"docker", "java", "maven"},
 		SkipOnOS:      "windows",
 		Assert: func(t *testing.T, output e2e.CommandOutput) {
@@ -73,7 +73,7 @@ var containerRemoteRunTests = &[]e2e.TestCase{
 		CIUser:        e2e.LoggedInCIUser,
 		Command:       "container remote-run",
 		Args:          []string{" --project test-project com.example.FuzzTestCase::myFuzzTest --monitor --monitor-duration 5m --monitor-interval 5s --json"},
-		SampleFolder:  []string{"../../../examples/maven"},
+		SampleFolder:  []string{"maven-default"},
 		ToolsRequired: []string{"docker", "java", "maven"},
 		SkipOnOS:      "windows",
 		Assert: func(t *testing.T, output e2e.CommandOutput) {

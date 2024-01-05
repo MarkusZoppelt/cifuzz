@@ -19,7 +19,7 @@ var containerRunTests = &[]e2e.TestCase{
 		Description:   "container run command in a maven/gradle example folder is available and fuzzer finds an RCE",
 		Command:       "container run",
 		Args:          []string{"com.example.FuzzTestCase::myFuzzTest"},
-		SampleFolder:  []string{"../../../examples/maven", "../../../examples/gradle"},
+		SampleFolder:  []string{"maven-default", "gradle-default"},
 		ToolsRequired: []string{"docker", "java", "maven"},
 		SkipOnOS:      "windows",
 		Assert: func(t *testing.T, output e2e.CommandOutput) {
