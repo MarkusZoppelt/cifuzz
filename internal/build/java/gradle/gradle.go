@@ -24,7 +24,6 @@ const (
 
 var (
 	classpathRegex         = regexp.MustCompile("(?m)^cifuzz.test.classpath=(?P<classpath>.*)$")
-	buildDirRegex          = regexp.MustCompile("(?m)^cifuzz.buildDir=(?P<buildDir>.*)$")
 	rootDirRegex           = regexp.MustCompile("(?m)^cifuzz.rootDir=(?P<rootDir>.*)$")
 	testSourceFoldersRegex = regexp.MustCompile("(?m)^cifuzz.test.source-folders=(?P<testSourceFolders>.*)$")
 	mainSourceFoldersRegex = regexp.MustCompile("(?m)^cifuzz.main.source-folders=(?P<mainSourceFolders>.*)$")
@@ -185,26 +184,6 @@ func buildGradleCommand(projectDir string, args []string) (*exec.Cmd, error) {
 	cmd.Dir = projectDir
 
 	return cmd, nil
-}
-
-func GetBuildDirectory(projectDir string) (string, error) {
-	cmd, err := buildGradleCommand(projectDir, []string{"cifuzzPrintBuildDir", "-q"})
-	if err != nil {
-		return "", nil
-	}
-
-	log.Debugf("Command: %s", cmd.String())
-	output, err := cmd.Output()
-	if err != nil {
-		return "", cmdutils.WrapExecError(errors.WithStack(err), cmd)
-	}
-	result := buildDirRegex.FindStringSubmatch(string(output))
-	if result == nil {
-		return "", errors.New("Unable to parse gradle build directory from init script.")
-	}
-	buildDir := strings.TrimSpace(result[1])
-
-	return buildDir, nil
 }
 
 func GetRootDirectory(projectDir string) (string, error) {
