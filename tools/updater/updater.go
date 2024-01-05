@@ -17,20 +17,21 @@ func main() {
 
 	flags := pflag.NewFlagSet("updater", pflag.ExitOnError)
 	deps := flags.String("dependency", "", "which dependency to update eg. gradle-plugin, jazzer, jazzerjs")
-	version := flags.String("version", "", "target version to update to, for example 1.2.3")
+	versionFlag := flags.String("version", "", "target version to update to, for example 1.2.3")
 
-	if err := flags.Parse(os.Args); err != nil {
-		log.Error(errors.WithStack(err))
-		os.Exit(1)
+	handleErr(flags.Parse(os.Args))
+
+	var targetVersion string
+	if *versionFlag == "" {
+		log.Infof("Search for latest version of %s", *deps)
+		targetVersion = findLatestVersion(*deps)
+	} else {
+		_, err := semver.NewVersion(*versionFlag)
+		handleErr(err)
+		targetVersion = *versionFlag
 	}
 
-	if *version != "dev" {
-		_, err := semver.NewVersion(*version)
-		if err != nil {
-			log.Error(errors.WithStack(err))
-			os.Exit(1)
-		}
-	}
+	log.Infof("Updating %s to: %s", *deps, targetVersion)
 
 	switch *deps {
 	case "gradle-plugin":
@@ -49,14 +50,14 @@ func main() {
 			"test/projects/gradle/testsuite/build.gradle.kts",
 		}
 		for _, path := range paths {
-			updateFile(path, *version, re)
+			updateFile(path, targetVersion, re)
 		}
 
 		re = regexp.MustCompile(`(com.code-intelligence.cifuzz:com.code-intelligence.cifuzz.gradle.plugin:)(?P<version>\d+.\d+.\d+.*|dev)(")`)
-		updateFile("tools/dependency-bundler/bundle-dependencies.sh", *version, re)
+		updateFile("tools/dependency-bundler/bundle-dependencies.sh", targetVersion, re)
 
 		re = regexp.MustCompile(`(GradlePlugin,\n\s*MinVersion:\s*\*semver\.MustParse\(")(?P<version>\d+.\d+.\d+|dev)(")`)
-		updateFile("pkg/dependencies/definitions.go", *version, re)
+		updateFile("pkg/dependencies/definitions.go", targetVersion, re)
 
 	case "maven-extension":
 		re := regexp.MustCompile(`(<artifactId>cifuzz-maven-extension<\/artifactId>\s*<version>)(?P<version>\d+.\d+.\d+.*|dev)(<\/version>)`)
@@ -75,32 +76,32 @@ func main() {
 			"test/projects/maven/pom.xml",
 		}
 		for _, path := range paths {
-			updateFile(path, *version, re)
+			updateFile(path, targetVersion, re)
 		}
 
 		re = regexp.MustCompile(`(com.code-intelligence:cifuzz-maven-extension:)(?P<version>\d+.\d+.\d+.*|dev)(")`)
-		updateFile("tools/dependency-bundler/bundle-dependencies.sh", *version, re)
+		updateFile("tools/dependency-bundler/bundle-dependencies.sh", targetVersion, re)
 
 		re = regexp.MustCompile(`(MavenExtension,\n\s*MinVersion:\s*\*semver\.MustParse\(")(?P<version>\d+.\d+.\d+|dev)(")`)
-		updateFile("pkg/dependencies/definitions.go", *version, re)
+		updateFile("pkg/dependencies/definitions.go", targetVersion, re)
 
 	case "jazzer":
 		re := regexp.MustCompile(`(<artifactId>jazzer-junit<\/artifactId>\s*<version>)(?P<version>\d+.\d+.\d+.*|dev)(<\/version>)`)
-		updateFile("tools/list-fuzz-tests/pom.xml", *version, re)
+		updateFile("tools/list-fuzz-tests/pom.xml", targetVersion, re)
 
 		re = regexp.MustCompile(`(com.code-intelligence:jazzer-junit:)(?P<version>\d+.\d+.\d+.*|dev)(")`)
-		updateFile("tools/dependency-bundler/bundle-dependencies.sh", *version, re)
+		updateFile("tools/dependency-bundler/bundle-dependencies.sh", targetVersion, re)
 
 	case "jazzerjs":
-		updateJazzerNpm("examples/nodejs", *version)
-		updateJazzerNpm("examples/nodejs-typescript", *version)
+		updateJazzerNpm("examples/nodejs", targetVersion)
+		updateJazzerNpm("examples/nodejs-typescript", targetVersion)
 
 		re := regexp.MustCompile(`(@jazzer\.js\/jest-runner@)(?P<version>\d+.\d+.\d+|dev)`)
-		updateFile("pkg/messaging/instructions/nodejs", *version, re)
-		updateFile("pkg/messaging/instructions/nodets", *version, re)
+		updateFile("pkg/messaging/instructions/nodejs", targetVersion, re)
+		updateFile("pkg/messaging/instructions/nodets", targetVersion, re)
 
 		re = regexp.MustCompile(`("@jazzer\.js\/jest-runner": "\^)(?P<version>\d+.\d+.\d+|dev)(")`)
-		updateFile("integration-tests/errors/nodejs/testdata/package.json", *version, re)
+		updateFile("integration-tests/errors/nodejs/testdata/package.json", targetVersion, re)
 	default:
 		log.Error(errors.New("unsupported dependency selected"))
 		os.Exit(1)
@@ -113,27 +114,25 @@ func updateJazzerNpm(path string, version string) {
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	err := cmd.Run()
-	if err != nil {
-		log.Error(err)
-		os.Exit(1)
-	}
+	handleErr(err)
 }
 
 func updateFile(path string, version string, re *regexp.Regexp) {
 	content, err := os.ReadFile(path)
-	if err != nil {
-		log.Error(err)
-		os.Exit(1)
-	}
+	handleErr(err)
 	buildFile := string(content)
 
 	s := re.ReplaceAllString(buildFile, fmt.Sprintf(`${1}%s${3}`, version))
 
 	err = os.WriteFile(path, []byte(s), 0x644)
-	if err != nil {
-		log.Error(err)
-		os.Exit(1)
-	}
+	handleErr(err)
 
 	fmt.Printf("updated %s to %s\n", path, version)
+}
+
+func handleErr(err error) {
+	if err != nil {
+		log.Error(errors.WithStack(err))
+		os.Exit(1)
+	}
 }
