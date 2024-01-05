@@ -57,7 +57,7 @@ type Dependency struct {
 func (dep *Dependency) checkVersion(projectDir string) bool {
 	currentVersion, err := dep.GetVersion(dep, projectDir)
 	if err != nil {
-		log.Warnf("Unable to get current version for %s, message: %v", dep.Key, err)
+		log.Warnf("Unable to get current version for %s: %v", dep.Key, err)
 		// we want to be lenient if we were not able to extract the version
 		return true
 	}
