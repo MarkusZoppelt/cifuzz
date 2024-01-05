@@ -51,6 +51,9 @@ func main() {
 		re = regexp.MustCompile(`(com.code-intelligence.cifuzz:com.code-intelligence.cifuzz.gradle.plugin:)(?P<version>\d+.\d+.\d+.*)(")`)
 		updateFile("tools/dependency-bundler/bundle-dependencies.sh", *version, re)
 
+		re = regexp.MustCompile(`(GradlePlugin,\n\s*MinVersion:\s*\*semver\.MustParse\(")(?P<version>\d+.\d+.\d+)(")`)
+		updateFile("pkg/dependencies/definitions.go", *version, re)
+
 	case "maven-extension":
 		re := regexp.MustCompile(`(<artifactId>cifuzz-maven-extension<\/artifactId>\s*<version>)(?P<version>\d+.\d+.\d+.*)(<\/version>)`)
 		paths := []string{
@@ -72,6 +75,9 @@ func main() {
 
 		re = regexp.MustCompile(`(com.code-intelligence:cifuzz-maven-extension:)(?P<version>\d+.\d+.\d+.*)(")`)
 		updateFile("tools/dependency-bundler/bundle-dependencies.sh", *version, re)
+
+		re = regexp.MustCompile(`(MavenExtension,\n\s*MinVersion:\s*\*semver\.MustParse\(")(?P<version>\d+.\d+.\d+)(")`)
+		updateFile("pkg/dependencies/definitions.go", *version, re)
 
 	case "jazzer":
 		re := regexp.MustCompile(`(<artifactId>jazzer-junit<\/artifactId>\s*<version>)(?P<version>\d+.\d+.\d+.*)(<\/version>)`)
