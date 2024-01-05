@@ -405,13 +405,6 @@ func (client *APIClient) IsTokenValid(token string) (bool, error) {
 	// TOOD: Change this to use another check without querying projects
 	_, err := client.ListProjects(token)
 	if err != nil {
-		var apiErr *APIError
-		if errors.As(err, &apiErr) {
-			if apiErr.StatusCode == 401 {
-				log.Warnf("Invalid token: Received 401 Unauthorized from server %s", client.Server)
-				return false, nil
-			}
-		}
 		return false, err
 	}
 	return true, nil
