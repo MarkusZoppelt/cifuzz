@@ -97,9 +97,9 @@ func newWithOptions(opts *options) *cobra.Command {
 func (cmd *findingCmd) run(args []string) error {
 	token, err := auth.GetValidToken(cmd.opts.Server)
 	if err != nil {
-		var noValidTokenError *auth.NoValidTokenError
-		if errors.As(err, &noValidTokenError) {
-			log.Debug(err.Error())
+		var connectionError *api.ConnectionError
+		if errors.As(err, &connectionError) {
+			log.Warnf("No connection to CI Sense. Only local findings are shown.")
 		} else {
 			return err
 		}

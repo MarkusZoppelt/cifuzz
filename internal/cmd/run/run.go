@@ -270,9 +270,9 @@ depends on the build system configured for the project.
 func (c *runCmd) run() error {
 	token, err := auth.GetValidToken(c.opts.Server)
 	if err != nil {
-		var noValidTokenError *auth.NoValidTokenError
-		if errors.As(err, &noValidTokenError) {
-			log.Debug(err.Error())
+		var connectionError *api.ConnectionError
+		if errors.As(err, &connectionError) {
+			log.Warn("No connection to CI Sense. Findings are not uploaded.")
 		} else {
 			return err
 		}
