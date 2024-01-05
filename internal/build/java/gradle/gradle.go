@@ -18,10 +18,6 @@ import (
 	"code-intelligence.com/cifuzz/util/fileutil"
 )
 
-const (
-	PluginMissingErrorMsg string = "Failed to access CI Fuzz gradle plugin"
-)
-
 var (
 	classpathRegex         = regexp.MustCompile("(?m)^cifuzz.test.classpath=(?P<classpath>.*)$")
 	rootDirRegex           = regexp.MustCompile("(?m)^cifuzz.rootDir=(?P<rootDir>.*)$")
@@ -80,12 +76,6 @@ func NewBuilder(opts *BuilderOptions) (*Builder, error) {
 }
 
 func (b *Builder) Build() (*build.BuildResult, error) {
-	version, err := b.GradlePluginVersion()
-	if err != nil {
-		return nil, err
-	}
-	log.Debugf("Found gradle plugin version: %s", version)
-
 	deps, err := GetDependencies(b.ProjectDir)
 	if err != nil {
 		return nil, err
@@ -98,34 +88,6 @@ func (b *Builder) Build() (*build.BuildResult, error) {
 	}
 
 	return result, nil
-}
-
-func (b *Builder) GradlePluginVersion() (string, error) {
-	cmd, err := buildGradleCommand(b.ProjectDir, []string{"cifuzzPrintPluginVersion", "-q"})
-	if err != nil {
-		return "", err
-	}
-	log.Debugf("Command: %s", cmd.String())
-
-	// Write cmd.Stderr to a buffer to catch if an error is caused by a
-	// missing plugin. In that case we want to print a help message,
-	// in all other cases we want to return the error and display the full
-	// error output from the command.
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-	output, err := cmd.Output()
-	if err != nil {
-		if strings.Contains(stderr.String(), "Task 'cifuzzPrintPluginVersion' not found") {
-			return "", errors.New(PluginMissingErrorMsg)
-		}
-		_, writeErr := b.Stderr.Write(stderr.Bytes())
-		if writeErr != nil {
-			log.Errorf(errors.WithStack(writeErr), "Failed to write command output to stderr: %v", writeErr.Error())
-		}
-		return "", errors.WithStack(err)
-	}
-
-	return strings.TrimPrefix(string(output), "cifuzz.plugin.version="), nil
 }
 
 func GetDependencies(projectDir string) ([]string, error) {
@@ -292,4 +254,29 @@ func GetOverriddenJazzerVersion(projectDir string) string {
 		log.Warnf("Overriding default Jazzer version with version %s.", jazzerVersion)
 	}
 	return jazzerVersion
+}
+
+func GetPluginVersion(projectDir string) (string, error) {
+	cmd, err := buildGradleCommand(projectDir, []string{"cifuzzPrintPluginVersion", "-q"})
+	if err != nil {
+		return "", err
+	}
+
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	output, err := cmd.Output()
+	if err != nil {
+		if strings.Contains(stderr.String(), "Task 'cifuzzPrintPluginVersion' not found") {
+			return "", nil
+		}
+
+		log.Debugf("Command: %s", cmd.String())
+		_, writeErr := stderr.Write(stderr.Bytes())
+		if writeErr != nil {
+			log.Errorf(errors.WithStack(writeErr), "Failed to write command output to stderr: %v", writeErr.Error())
+		}
+		return "", errors.WithStack(err)
+	}
+
+	return strings.TrimSpace(strings.TrimPrefix(string(output), "cifuzz.plugin.version=")), nil
 }

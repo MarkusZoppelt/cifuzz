@@ -192,6 +192,23 @@ var deps = Dependencies{
 			return dep.checkFinder(dep.finder.GradlePath)
 		},
 	},
+	GradlePlugin: {
+		Key:        GradlePlugin,
+		MinVersion: *semver.MustParse("1.11.0"),
+		GetVersion: gradlePluginVersion,
+		Installed: func(dep *Dependency, projectDir string) bool {
+			version, err := gradle.GetPluginVersion(projectDir)
+			if err != nil {
+				log.Errorf(err, "Error while checking for installed Gradle plugin: %v", err)
+				return false
+			}
+
+			if version == "" {
+				return false
+			}
+			return true
+		},
+	},
 	Node: {
 		Key:        Node,
 		MinVersion: *semver.MustParse("16.0"),

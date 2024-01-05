@@ -186,6 +186,21 @@ func gradleVersion(dep *Dependency, projectDir string) (*semver.Version, error) 
 	return version, nil
 }
 
+func gradlePluginVersion(dep *Dependency, projectDir string) (*semver.Version, error) {
+	versionStr, err := gradle.GetPluginVersion(projectDir)
+	if err != nil {
+		return nil, err
+	}
+
+	version, err := semver.NewVersion(versionStr)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	log.Debugf("Found %s version %s", GradlePlugin, version)
+
+	return version, nil
+}
+
 func mavenVersion(dep *Dependency, projectDir string) (*semver.Version, error) {
 	path, err := exec.LookPath("mvn")
 	if err != nil {

@@ -28,9 +28,10 @@ const (
 	GenHTML Key = "genhtml"
 	Perl    Key = "perl"
 
-	Java   Key = "java"
-	Maven  Key = "mvn"
-	Gradle Key = "gradle"
+	Java         Key = "java"
+	Maven        Key = "mvn"
+	Gradle       Key = "gradle"
+	GradlePlugin Key = "cifuzz gradle plugin"
 
 	Node Key = "node"
 

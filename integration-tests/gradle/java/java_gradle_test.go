@@ -15,9 +15,9 @@ import (
 
 	"code-intelligence.com/cifuzz/integration-tests/gradle"
 	"code-intelligence.com/cifuzz/integration-tests/shared"
-	gradleBuild "code-intelligence.com/cifuzz/internal/build/java/gradle"
 	builderPkg "code-intelligence.com/cifuzz/internal/builder"
 	"code-intelligence.com/cifuzz/internal/config"
+	"code-intelligence.com/cifuzz/pkg/dependencies"
 	"code-intelligence.com/cifuzz/pkg/log"
 	"code-intelligence.com/cifuzz/pkg/parser/coverage"
 	"code-intelligence.com/cifuzz/pkg/parser/libfuzzer/stacktrace"
@@ -52,7 +52,7 @@ func TestIntegration_Gradle(t *testing.T) {
 	// Check that correct error occurs if plugin is missing
 	t.Run("runWithoutPlugin", func(t *testing.T) {
 		cifuzzRunner.Run(t, &shared.RunOptions{
-			ExpectedOutputs:              []*regexp.Regexp{regexp.MustCompile(gradleBuild.PluginMissingErrorMsg)},
+			ExpectedOutputs:              []*regexp.Regexp{regexp.MustCompile(fmt.Sprintf(dependencies.MessageMissing, dependencies.GradlePlugin))},
 			TerminateAfterExpectedOutput: true,
 			ExpectError:                  true,
 		})
