@@ -47,6 +47,10 @@ func GetValidToken(server string) (string, error) {
 		return "", err
 	}
 
+	if token == "" {
+		return "", nil
+	}
+
 	isValid, err := IsValidToken(server, token)
 	if err != nil {
 		return "", err
