@@ -12,6 +12,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"code-intelligence.com/cifuzz/internal/build/java"
 	"code-intelligence.com/cifuzz/internal/config"
 	"code-intelligence.com/cifuzz/internal/coverage"
 	"code-intelligence.com/cifuzz/pkg/log"
@@ -78,8 +79,16 @@ func (cov *CoverageGenerator) GenerateCoverageReport() (string, error) {
 		classFilesDir = filepath.Join(cov.ProjectDir, "build", "classes")
 	}
 
-	// TODO: Get the correct path from the build system.
-	sourceFilesDir := filepath.Join(cov.ProjectDir, "src", "main", "java")
+	sourceFilesDirs, err := java.SourceDirs(cov.ProjectDir, cov.BuildSystem)
+	if err != nil {
+		return "", err
+	}
+	if len(sourceFilesDirs) == 0 {
+		return "", errors.Errorf("Failed to find source file directory in %s", cov.ProjectDir)
+	}
+	// JaCoCo does not seem to support multiple source file directories, so we assume that the first
+	// one has all the sources.
+	sourceFilesDir := sourceFilesDirs[0]
 
 	htmlPath := filepath.Join(cov.OutputPath, "html")
 	jacocoXMLPath, err := cov.runJacocoCommand(cliJar, cov.jacocoExecFilePath(), htmlPath, classFilesDir, sourceFilesDir)
@@ -110,7 +119,7 @@ func (cov *CoverageGenerator) GenerateCoverageReport() (string, error) {
 			return "", errors.WithStack(err)
 		}
 
-		lcovReport, err := parser.ParseJacocoXMLIntoLCOVReport(reportFile)
+		lcovReport, err := parser.ParseJacocoXMLIntoLCOVReport(reportFile, sourceFilesDir)
 		if err != nil {
 			return "", err
 		}
@@ -166,6 +175,9 @@ func (cov *CoverageGenerator) GenerateCoverageReportInFuzzContainer(jacocoExecFi
 	}
 
 	classFilesDir := "/cifuzz/runtime_deps/target/classes"
+	// Here and in the call to parser.ParseJacocoXMLIntoLCOVReport below, we do not pass in a
+	// non-empty sourceFilesDir as source files aren't available in fuzz containers anyway. We are
+	// only interested in coverage statistics, not actual source file contents.
 	jacocoXMLFile, err := cov.runJacocoCommand(cliJar, jacocoExecFilePath, "", classFilesDir, "")
 	if err != nil {
 		return "", err
@@ -177,7 +189,7 @@ func (cov *CoverageGenerator) GenerateCoverageReportInFuzzContainer(jacocoExecFi
 		return "", errors.WithStack(err)
 	}
 	defer fileReader.Close()
-	lcovReport, err := parser.ParseJacocoXMLIntoLCOVReport(fileReader)
+	lcovReport, err := parser.ParseJacocoXMLIntoLCOVReport(fileReader, "")
 	if err != nil {
 		return "", err
 	}

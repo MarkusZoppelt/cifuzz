@@ -46,7 +46,7 @@ func TestParseJacocoXMLIntoLCOVReport(t *testing.T) {
 </report>
 `
 
-	report, err := ParseJacocoXMLIntoLCOVReport(strings.NewReader(reportData))
+	report, err := ParseJacocoXMLIntoLCOVReport(strings.NewReader(reportData), filepath.Join("src", "main", "java"))
 	require.NoError(t, err)
 
 	require.Len(t, report.SourceFiles, 1, "incorrect number of SourceFiles")
@@ -99,7 +99,7 @@ func TestParseJacocoXMLIntoLCOVReport(t *testing.T) {
 }
 
 func TestParseJacocoXMLIntoLCOVReport_Empty(t *testing.T) {
-	report, err := ParseJacocoXMLIntoLCOVReport(strings.NewReader(""))
+	report, err := ParseJacocoXMLIntoLCOVReport(strings.NewReader(""), filepath.Join("src", "main", "java"))
 	require.NoError(t, err)
 	assert.Len(t, report.SourceFiles, 0)
 }

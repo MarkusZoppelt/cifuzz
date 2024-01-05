@@ -4,7 +4,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -49,7 +48,7 @@ type JacocoCounter struct {
 	Covered int    `xml:"covered,attr"`
 }
 
-func ParseJacocoXMLIntoLCOVReport(in io.Reader) (*LCOVReport, error) {
+func ParseJacocoXMLIntoLCOVReport(in io.Reader, sourceFilesDir string) (*LCOVReport, error) {
 	lcovReport := &LCOVReport{}
 
 	output, err := io.ReadAll(in)
@@ -75,8 +74,7 @@ func ParseJacocoXMLIntoLCOVReport(in io.Reader) (*LCOVReport, error) {
 			packagePath := filepath.Join(pkg.Name, sourceFile.Name)
 			// Note: Sourcefile name needs to have full path so that the files
 			// can be found when they are mapped by genhtml
-			// TODO: handle cases where path is not default
-			sf.Name = filepath.Join("src", "main", "java", packagePath)
+			sf.Name = filepath.Join(sourceFilesDir, packagePath)
 
 			for _, line := range sourceFile.Line {
 				// Line coverage
@@ -195,32 +193,6 @@ func ParseJacocoXMLIntoSummary(in io.Reader) *Summary {
 	}
 
 	return coverageSummary
-}
-
-// ConvertToLCOV converts the given jacoco.xml file (reportFile) into an LCOV
-// report at covOutputPath and returns the coverage summary.
-func ConvertToLCOV(reportFile *os.File, covOutputPath string) (*Summary, error) {
-	lcovReport, err := ParseJacocoXMLIntoLCOVReport(reportFile)
-	if err != nil {
-		return nil, err
-	}
-	reportPath := filepath.Join(covOutputPath, "coverage.lcov")
-	err = lcovReport.WriteLCOVReportToFile(reportPath)
-	if err != nil {
-		return nil, err
-	}
-
-	reportFile, err = os.Open(reportPath)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-	defer reportFile.Close()
-
-	summary, err := ParseLCOVReportIntoSummary(reportFile)
-	if err != nil {
-		return nil, err
-	}
-	return summary, nil
 }
 
 func countJacoco(c *Overview, counter *JacocoCounter) {
