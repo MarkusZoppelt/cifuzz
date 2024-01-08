@@ -1,0 +1,22 @@
+on:
+  workflow_call:
+
+jobs:
+  bundle_dependencies:
+    name: Bundle dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Create dependency bundle
+        run: |
+          ./tools/dependency-bundler/bundle-dependencies.sh ${{ secrets.REPOSITORY_USER }} ${{ secrets.REPOSITORY_TOKEN }}
+        shell: bash
+
+      - name: Upload dependency bundle
+        uses: actions/upload-artifact@v3
+        with:
+          name: dependency_bundle
+          path: ./dependency_bundle.tar
+          if-no-files-found: error
+          retention-days: 5

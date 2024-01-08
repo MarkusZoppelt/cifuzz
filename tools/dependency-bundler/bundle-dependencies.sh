@@ -14,7 +14,7 @@ fi
 
 COURSIER_JAR=/tmp/coursier.jar
 COURSIER_CACHE=/tmp/ci-coursier
-DEPENDENCIES_ARCHIVE=ci-dependencies.tar
+DEPENDENCIES_ARCHIVE=dependency_bundle.tar
 
 REPOSITORY_USER=$1
 REPOSITORY_PASSWORD=$2

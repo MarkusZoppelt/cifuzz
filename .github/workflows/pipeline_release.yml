@@ -42,6 +42,15 @@ jobs:
       compatibility_check: ${{ vars.RELEASE_COMPATIBILITY_CHECK }}
     secrets: inherit
 
+  bundle_dependencies:
+    name: Bundle dependencies
+    uses: ./.github/workflows/workflow_bundle_dependencies.yml
+    needs: version
+    if: needs.version.outputs.published == 'true'
+    permissions:
+      actions: write # for uploading artifacts
+    secrets: inherit
+
   create_release:
     name: Create release
     runs-on: ubuntu-latest
@@ -49,7 +58,6 @@ jobs:
     if: needs.version.outputs.published == 'true'
     permissions:
       contents: write # for creating releases
-
     steps:
       # needed for the release template
       - uses: actions/checkout@v3
@@ -72,13 +80,19 @@ jobs:
   upload_portal:
     name: Upload release to download portal
     runs-on: ubuntu-latest
-    needs: [version, installer, create_release]
+    needs: [version, installer, create_release, bundle_dependencies]
     if: needs.version.outputs.published == 'true'
     steps:
       - name: Download Artifacts
         uses: actions/download-artifact@v3
         with:
           name: cifuzz_installer
+          path: installer
+
+      - name: Download dependency bundle
+        uses: actions/download-artifact@v3
+        with:
+          name: dependency_bundle
           path: installer
 
       - uses: LanceMcCarthy/Action-AzureBlobUpload@v2
