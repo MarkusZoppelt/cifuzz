@@ -67,6 +67,21 @@ var containerRemoteRunTests = &[]e2e.TestCase{
 		},
 	},
 	{
+		Description:   "container remote-run command in a maven/gradle example directory with --registry flag pushes it to a custom registry",
+		CIUser:        e2e.LoggedInCIUser,
+		Command:       "container remote-run",
+		Args:          []string{" --project test-project com.example.FuzzTestCase::myFuzzTest --registry localhost:5000/test/cifuzz -v"},
+		SampleFolder:  []string{"maven-default"},
+		ToolsRequired: []string{"docker", "java", "maven"},
+		SkipOnOS:      "windows",
+		Assert: func(t *testing.T, output e2e.CommandOutput) {
+			output.Success().
+				ErrorContains("Getting registry credentials from local docker config for registry localhost:5000/test/cifuzz").
+				ErrorContains("Start uploading image ").
+				ErrorContains("Tag used for upload: localhost:5000/cifuzz/")
+		},
+	},
+	{
 		Description:   "container remote-run command in a maven/gradle example directory with monitor mode runs successfully",
 		CIUser:        e2e.LoggedInCIUser,
 		Command:       "container remote-run",
