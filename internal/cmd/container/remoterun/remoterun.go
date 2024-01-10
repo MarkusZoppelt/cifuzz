@@ -1,6 +1,7 @@
 package remoterun
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -199,7 +200,17 @@ func (c *containerRemoteRunCmd) run() error {
 		}
 	}
 
-	imageName := fmt.Sprintf("%s/cifuzz/%s", registryCredentials.URL, c.opts.Project)
+	// we'll create a sha256 of the project name in the image name so that we
+	// only get lowercase characters in the image name.
+	projectHash := fmt.Sprintf("%x", sha256.Sum256([]byte(c.opts.Project)))
+	// We'll use only a portion (12 characters) of the hash to keep the image
+	// name reasonably short, similar to how Git uses only a portion (the last 7
+	// chars) of the hash for commit IDs. SHA-1 is weaker than SHA-256, which is
+	// why Git uses a longer portion for a similar level of security. However,
+	// given the increased strength of SHA-256, using a longer portion, such as
+	// 12 characters, might be a reasonable compromise.
+	reducedHash := projectHash[len(projectHash)-12:]
+	imageName := fmt.Sprintf("%s/cifuzz/%s", registryCredentials.URL, reducedHash)
 
 	err = container.UploadImage(imageID, registryCredentials, imageName)
 	if err != nil {
