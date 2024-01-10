@@ -2,6 +2,7 @@ package nodejs
 
 import (
 	"encoding/json"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
@@ -36,6 +37,8 @@ func TestIntegration_NodeJSErrors(t *testing.T) {
 	// Execute npm install
 	cmd := exec.Command("npm", "install")
 	cmd.Dir = testdataTmp
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	require.NoError(t, err)
 
