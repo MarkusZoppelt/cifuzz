@@ -2,6 +2,7 @@ package container_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"testing"
@@ -11,6 +12,11 @@ import (
 	"code-intelligence.com/cifuzz/e2e"
 	"code-intelligence.com/cifuzz/integration-tests/shared/mockserver"
 	"code-intelligence.com/cifuzz/internal/api"
+)
+
+const (
+	prjNid = "prj-testtesttesttest"
+	runNid = "run-testtesttesttest"
 )
 
 var containerRemoteRunWithoutConnectionTests = &[]e2e.TestCase{
@@ -56,7 +62,7 @@ var containerRemoteRunTests = &[]e2e.TestCase{
 		Description:   "container remote-run command in a maven/gradle example directory is available and pushes it to a registry",
 		CIUser:        e2e.LoggedInCIUser,
 		Command:       "container remote-run",
-		Args:          []string{" --project test-project com.example.FuzzTestCase::myFuzzTest -v"},
+		Args:          []string{fmt.Sprintf(" --project %s com.example.FuzzTestCase::myFuzzTest -v", prjNid)},
 		SampleFolder:  []string{"maven-default", "gradle-default"},
 		ToolsRequired: []string{"docker", "java", "maven"},
 		SkipOnOS:      "windows",
@@ -70,7 +76,7 @@ var containerRemoteRunTests = &[]e2e.TestCase{
 		Description:   "container remote-run command in a maven/gradle example directory with --registry flag pushes it to a custom registry",
 		CIUser:        e2e.LoggedInCIUser,
 		Command:       "container remote-run",
-		Args:          []string{" --project test-project com.example.FuzzTestCase::myFuzzTest --registry localhost:5000/test/cifuzz -v"},
+		Args:          []string{fmt.Sprintf(" --project %s com.example.FuzzTestCase::myFuzzTest --registry localhost:5000/test/cifuzz -v", prjNid)},
 		SampleFolder:  []string{"maven-default"},
 		ToolsRequired: []string{"docker", "java", "maven"},
 		SkipOnOS:      "windows",
@@ -85,7 +91,7 @@ var containerRemoteRunTests = &[]e2e.TestCase{
 		Description:   "container remote-run command in a maven/gradle example directory with monitor mode runs successfully",
 		CIUser:        e2e.LoggedInCIUser,
 		Command:       "container remote-run",
-		Args:          []string{" --project test-project com.example.FuzzTestCase::myFuzzTest --monitor --monitor-duration 5m --monitor-interval 5s -v"},
+		Args:          []string{fmt.Sprintf(" --project %s com.example.FuzzTestCase::myFuzzTest --monitor --monitor-duration 5m --monitor-interval 5s -v", prjNid)},
 		SampleFolder:  []string{"maven-default"},
 		ToolsRequired: []string{"docker", "java", "maven"},
 		SkipOnOS:      "windows",
@@ -101,7 +107,7 @@ var containerRemoteRunTests = &[]e2e.TestCase{
 		Description:   "container remote-run command in a maven/gradle example directory with monitor mode and check for duration limit.",
 		CIUser:        e2e.LoggedInCIUser,
 		Command:       "container remote-run",
-		Args:          []string{" --project test-project com.example.FuzzTestCase::myFuzzTest --monitor --monitor-duration 10s --monitor-interval 5s -v"},
+		Args:          []string{fmt.Sprintf(" --project %s com.example.FuzzTestCase::myFuzzTest --monitor --monitor-duration 10s --monitor-interval 5s -v", prjNid)},
 		SampleFolder:  []string{"maven-default"},
 		ToolsRequired: []string{"docker", "java", "maven"},
 		SkipOnOS:      "windows",
@@ -117,7 +123,7 @@ var containerRemoteRunTests = &[]e2e.TestCase{
 		Description:   "container remote-run command in a maven/gradle example directory with monitor mode and JSON output produces parsable JSON",
 		CIUser:        e2e.LoggedInCIUser,
 		Command:       "container remote-run",
-		Args:          []string{" --project test-project com.example.FuzzTestCase::myFuzzTest --monitor --monitor-duration 5m --monitor-interval 5s --json"},
+		Args:          []string{fmt.Sprintf(" --project %s com.example.FuzzTestCase::myFuzzTest --monitor --monitor-duration 5m --monitor-interval 5s --json", prjNid)},
 		SampleFolder:  []string{"maven-default"},
 		ToolsRequired: []string{"docker", "java", "maven"},
 		SkipOnOS:      "windows",
@@ -153,11 +159,11 @@ func TestContainerRemoteRun(t *testing.T) {
 	mockServer := mockserver.New(t)
 	mockServer.Handlers["/v1/projects"] = mockserver.ReturnResponse(t, mockserver.ProjectsJSON)
 	mockServer.Handlers["/v2/docker_registry/authentication"] = mockserver.ReturnResponse(t, mockserver.ContainerRegstryCredentialsResponse)
-	mockServer.Handlers["/v3/runs"] = mockserver.ReturnResponse(t, mockserver.ContainerRemoteRunResponse)
-	mockServer.Handlers["/v3/runs/run-testtesttesttest/status"] = mockserver.ReturnResponse(t, mockserver.ContainerRemoteRunStatusResponse)
+	mockServer.Handlers[fmt.Sprintf("/v3/projects/%s/runs", prjNid)] = mockserver.ReturnResponse(t, mockserver.ContainerRemoteRunResponse)
+	mockServer.Handlers[fmt.Sprintf("/v3/runs/%s/status", runNid)] = mockserver.ReturnResponse(t, mockserver.ContainerRemoteRunStatusResponse)
 
 	requestCount := 0
-	mockServer.Handlers["/v3/runs/run-testtesttesttest/findings"] = func(w http.ResponseWriter, req *http.Request) {
+	mockServer.Handlers[fmt.Sprintf("/v3/runs/%s/findings", runNid)] = func(w http.ResponseWriter, req *http.Request) {
 		if requestCount >= 5 {
 			_, err := io.WriteString(w, mockserver.ContainerRemoteRunFindingsResponse)
 			require.NoError(t, err)

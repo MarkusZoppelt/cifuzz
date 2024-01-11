@@ -4,19 +4,15 @@ import (
 	"encoding/json"
 
 	"github.com/pkg/errors"
+
+	"code-intelligence.com/cifuzz/pkg/vcs"
 )
 
 type ContainerRun struct {
 	Image     string      `json:"image"`
 	FuzzTests []*FuzzTest `json:"fuzz_tests,omitempty"`
-
-	// ProjectNid is the new project ID format used in responses from CI Sense.
-	// Future responses from the /v3 API will use these nano IDs and are usually
-	// prefixed with "prj", "job", "org", etc.
-	ProjectNid string `json:"project_nid,omitempty"`
-
-	// ProjectExternalID is the conventional project id used in the URL of CI Sense
-	ProjectExternalID string `json:"project_external_id,omitempty"`
+	GitCommit string      `json:"git_commit,omitempty"`
+	GitBranch string      `json:"git_branch,omitempty"`
 }
 
 type ContainerRunResponse struct {
@@ -47,7 +43,7 @@ type Job struct {
 	Config string `json:"config,omitempty"`
 }
 
-// PostContainerRemoteRun posts a new container run to the CI Sense API at /v3/runs.
+// PostContainerRemoteRun posts a new container run to the CI Sense API at /v3/projects/{project_nid}/runs.
 // project does not need to have a projects/ prefix and needs to be url encoded.
 func (client *APIClient) PostContainerRemoteRun(image string, project string, fuzzTests []string, token string) (*ContainerRunResponse, error) {
 	tests := []*FuzzTest{}
@@ -61,9 +57,14 @@ func (client *APIClient) PostContainerRemoteRun(image string, project string, fu
 	}
 
 	containerRun := &ContainerRun{
-		Image:      image,
-		FuzzTests:  tests,
-		ProjectNid: nid,
+		Image:     image,
+		FuzzTests: tests,
+	}
+
+	gitRevision := vcs.CodeRevision()
+	if gitRevision != nil {
+		containerRun.GitCommit = gitRevision.Git.Commit
+		containerRun.GitBranch = gitRevision.Git.Branch
 	}
 
 	body, err := json.Marshal(containerRun)
@@ -76,7 +77,7 @@ func (client *APIClient) PostContainerRemoteRun(image string, project string, fu
 		Method:       "POST",
 		Body:         body,
 		Token:        token,
-		PathSegments: []string{"v3", "runs"},
+		PathSegments: []string{"v3", "projects", nid, "runs"},
 	})
 }
 
