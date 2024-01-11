@@ -323,7 +323,18 @@ func (c *containerRemoteRunCmd) monitorCampaignRun(apiClient *api.APIClient, run
 					if err != nil {
 						return err
 					}
-					level := strings.ToUpper(string(severity.Level))
+
+					var level string
+
+					// we need to make sure that the mapping from error ID to severity
+					// worked, otherwise we'll get a nil pointer dereference to severity
+					if severity != nil {
+						level = strings.ToUpper(string(severity.Level))
+					} else {
+						// if the mapping didn't work, we'll use MEDIUM as the default
+						level = "MEDIUM"
+						log.Warnf("Finding with unknown severity found (using MEDIUM): %s, NID: %s", f.DisplayName, f.Nid)
+					}
 
 					switch strings.ToUpper(c.opts.MinFindingSeverity) {
 					case "LOW":
