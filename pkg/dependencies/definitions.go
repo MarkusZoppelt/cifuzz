@@ -87,7 +87,7 @@ var deps = Dependencies{
 	},
 	Gradle: {
 		Key:        Gradle,
-		MinVersion: *semver.MustParse("6.1.0"),
+		MinVersion: *semver.MustParse("6.1.1"),
 		GetVersion: gradleVersion,
 		Installed: func(dep *Dependency, projectDir string) bool {
 			if projectDir != "" {
