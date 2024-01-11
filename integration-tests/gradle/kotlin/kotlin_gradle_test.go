@@ -61,13 +61,13 @@ func TestIntegration_GradleKotlin(t *testing.T) {
 	// Add instructions to gradle config files
 	linesToAdd := shared.FilterForInstructionBlocks(allStderrLines)
 
-	repository := linesToAdd[1][1 : len(linesToAdd[1])-2]
+	pluginManagement := linesToAdd[1]
+	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "settings.gradle.kts"), pluginManagement, "rootProject", false)
+
+	repository := linesToAdd[2][1 : len(linesToAdd[2])-2]
 	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "build.gradle.kts"), repository, "repositories", true)
 
-	pluginManagement := linesToAdd[2]
-	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "settings.gradle.kts"), pluginManagement, "rootProject", true)
-
-	pluginID := linesToAdd[3]
+	pluginID := linesToAdd[3][1:2]
 	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "build.gradle.kts"), pluginID, "application", true)
 
 	// Execute the create command

@@ -61,14 +61,14 @@ func TestIntegration_Gradle(t *testing.T) {
 	// Add instructions to gradle config files
 	linesToAdd := shared.FilterForInstructionBlocks(allStderrLines)
 
-	repository := linesToAdd[1][1 : len(linesToAdd[1])-2]
-	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "build.gradle"), repository, "repositories", true)
-
-	pluginManagement := strings.Join(linesToAdd[2], "\n")
+	pluginManagement := strings.Join(linesToAdd[1], "\n")
 	err := os.WriteFile(filepath.Join(projectDir, "settings.gradle"), []byte(pluginManagement), 0755)
 	require.NoError(t, err)
 
-	pluginID := linesToAdd[3]
+	repository := linesToAdd[2][1 : len(linesToAdd[2])-2]
+	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "build.gradle"), repository, "repositories", true)
+
+	pluginID := linesToAdd[3][1:2]
 	shared.AddLinesToFileAtBreakPoint(t, filepath.Join(projectDir, "build.gradle"), pluginID, "id", true)
 
 	// Execute the create command
