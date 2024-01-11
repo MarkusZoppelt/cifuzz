@@ -1,6 +1,3 @@
-include("app")
-include("testsuite")
-
 pluginManagement {
 	repositories {
 		maven {
@@ -14,3 +11,7 @@ pluginManagement {
 		gradlePluginPortal()
 	}
 }
+
+include("app")
+include("testsuite")
+

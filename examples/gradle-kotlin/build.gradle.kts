@@ -1,6 +1,6 @@
 plugins {
-	id("org.jetbrains.kotlin.jvm") version "1.7.20"
 	application
+	id("org.jetbrains.kotlin.jvm") version "1.7.20"
 	id("com.code-intelligence.cifuzz") version "1.12.0"
 }
 
