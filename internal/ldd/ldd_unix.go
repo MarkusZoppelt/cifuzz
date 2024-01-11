@@ -14,14 +14,14 @@ func NonSystemSharedLibraries(executable string) ([]string, error) {
 
 	// ldd provides the complete list of dynamic dependencies of a dynamically linked file.
 	// That is, we don't have to recursively query the transitive dynamic dependencies.
-	filesInfo, err := ldd.Ldd([]string{executable})
+	dependencies, err := ldd.List(executable)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 
-	for _, fileInfo := range filesInfo {
-		if fileutil.IsSharedLibrary(fileInfo.FullName) && !fileutil.IsSystemLibrary(fileInfo.FullName) {
-			sharedObjects = append(sharedObjects, fileInfo.FullName)
+	for _, dep := range dependencies {
+		if fileutil.IsSharedLibrary(dep) && !fileutil.IsSystemLibrary(dep) {
+			sharedObjects = append(sharedObjects, dep)
 		}
 	}
 
