@@ -6,7 +6,7 @@ require (
 	atomicgo.dev/keyboard v0.2.9
 	github.com/Masterminds/semver v1.5.0
 	github.com/alessio/shellescape v1.4.2
-	github.com/alexflint/go-filemutex v1.2.0
+	github.com/alexflint/go-filemutex v1.3.0
 	github.com/docker/cli v24.0.7+incompatible
 	github.com/docker/docker v24.0.7+incompatible
 	github.com/gen2brain/beeep v0.0.0-20230602101333-f384c29b62dd
