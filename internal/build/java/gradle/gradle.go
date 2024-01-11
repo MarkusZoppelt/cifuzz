@@ -16,6 +16,7 @@ import (
 	"code-intelligence.com/cifuzz/pkg/log"
 	"code-intelligence.com/cifuzz/pkg/runfiles"
 	"code-intelligence.com/cifuzz/util/fileutil"
+	"code-intelligence.com/cifuzz/util/regexutil"
 )
 
 var (
@@ -24,6 +25,7 @@ var (
 	testSourceFoldersRegex = regexp.MustCompile("(?m)^cifuzz.test.source-folders=(?P<testSourceFolders>.*)$")
 	mainSourceFoldersRegex = regexp.MustCompile("(?m)^cifuzz.main.source-folders=(?P<mainSourceFolders>.*)$")
 	jazzerVersionRegex     = regexp.MustCompile("(?m)^cifuzz.deps.jazzer-version=(?P<jazzerVersion>.*)$")
+	pluginVersionRegex     = regexp.MustCompile(`(?m)^cifuzz.plugin.version=(?P<version>\d+.\d+[.\d]*)`)
 )
 
 func FindGradleWrapper(projectDir string) (string, error) {
@@ -271,12 +273,16 @@ func GetPluginVersion(projectDir string) (string, error) {
 		}
 
 		log.Debugf("Command: %s", cmd.String())
-		_, writeErr := stderr.Write(stderr.Bytes())
-		if writeErr != nil {
-			log.Errorf(errors.WithStack(writeErr), "Failed to write command output to stderr: %v", writeErr.Error())
-		}
+		log.Debugf("Output:\n%s", string(output))
 		return "", errors.WithStack(err)
 	}
 
-	return strings.TrimSpace(strings.TrimPrefix(string(output), "cifuzz.plugin.version=")), nil
+	match, found := regexutil.FindNamedGroupsMatch(pluginVersionRegex, string(output))
+	if !found {
+		log.Debugf("Command: %s", cmd.String())
+		log.Debugf("Output:\n%s", string(output))
+		return "", errors.New("Failed to extract version from task 'cifuzzPrintPluginVersion'")
+	}
+
+	return match["version"], nil
 }
