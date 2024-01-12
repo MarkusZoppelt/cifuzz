@@ -57,7 +57,7 @@ func newWithOptions(opts *containerRemoteRunOpts) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "remote-run",
 		Short: "Build and run a Fuzz Test container image on a CI server",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ArbitraryArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// Bind viper keys to flags. We can't do this in the New
 			// function, because that would re-bind viper keys which
@@ -257,6 +257,8 @@ func (c *containerRemoteRunCmd) buildImage() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	c.opts.FuzzTests = bundleResult.FuzzTestNames
 
 	return container.BuildImageFromBundle(bundleResult.BundlePath)
 }
