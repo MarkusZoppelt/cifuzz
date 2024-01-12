@@ -26,24 +26,29 @@ type Bundler struct {
 	opts *Opts
 }
 
+type BundleResult struct {
+	BundlePath    string
+	FuzzTestNames []string
+}
+
 func New(opts *Opts) *Bundler {
 	return &Bundler{opts: opts}
 }
 
-func (b *Bundler) Bundle() (string, error) {
+func (b *Bundler) Bundle() (*BundleResult, error) {
 	var err error
 
 	// Create temp dir
 	b.opts.tempDir, err = os.MkdirTemp("", "cifuzz-bundle-")
 	if err != nil {
-		return "", errors.WithStack(err)
+		return nil, errors.WithStack(err)
 	}
 	defer fileutil.Cleanup(b.opts.tempDir)
 
 	var bundle *os.File
 	bundle, err = b.createEmptyBundle()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	// if an error occurs during bundling we should make sure that
 	// the bundle gets removed
@@ -68,29 +73,29 @@ func (b *Bundler) Bundle() (string, error) {
 		err = errors.Errorf("Unknown build system for bundler: %s", b.opts.BuildSystem)
 	}
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	dockerImageUsedInBundle := b.determineDockerImageForBundle()
 	err = b.createMetadataFileInArchive(fuzzers, archiveWriter, dockerImageUsedInBundle)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	err = b.createWorkDirInArchive(archiveWriter)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	err = b.copyAdditionalFilesToArchive(archiveWriter)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if b.opts.BundleBuildLogFile != "" {
 		err = archiveWriter.WriteFile("build.log", b.opts.BundleBuildLogFile)
 		if err != nil {
-			return "", errors.WithStack(err)
+			return nil, errors.WithStack(err)
 		}
 	}
 
@@ -101,29 +106,34 @@ func (b *Bundler) Bundle() (string, error) {
 	for _, h := range archiveWriter.Headers() {
 		_, err := fmt.Fprintf(w, "%s\t%d\t %s\n", h.FileInfo().Mode().String(), h.Size, h.Name)
 		if err != nil {
-			return "", errors.WithStack(err)
+			return nil, errors.WithStack(err)
 		}
 	}
 	err = w.Flush()
 	if err != nil {
-		return "", errors.WithStack(err)
+		return nil, errors.WithStack(err)
 	}
 	log.Debugf("Content of bundle %s:\n%s", bundle.Name(), tableBuf.String())
 
 	err = archiveWriter.Close()
 	if err != nil {
-		return "", errors.WithStack(err)
+		return nil, errors.WithStack(err)
 	}
 	err = bufWriter.Flush()
 	if err != nil {
-		return "", errors.WithStack(err)
+		return nil, errors.WithStack(err)
 	}
 	err = bundle.Close()
 	if err != nil {
-		return "", errors.WithStack(err)
+		return nil, errors.WithStack(err)
 	}
 
-	return bundle.Name(), nil
+	fuzzTestNames := []string{}
+	for _, fuzzer := range fuzzers {
+		fuzzTestNames = append(fuzzTestNames, fuzzer.Name)
+	}
+
+	return &BundleResult{bundle.Name(), fuzzTestNames}, nil
 }
 
 func (b *Bundler) createEmptyBundle() (*os.File, error) {

@@ -253,12 +253,12 @@ func (c *containerRemoteRunCmd) run() error {
 
 func (c *containerRemoteRunCmd) buildImage() (string, error) {
 	b := bundler.New(&c.opts.Opts)
-	bundlePath, err := b.Bundle()
+	bundleResult, err := b.Bundle()
 	if err != nil {
 		return "", err
 	}
 
-	return container.BuildImageFromBundle(bundlePath)
+	return container.BuildImageFromBundle(bundleResult.BundlePath)
 }
 
 // monitorCampaignRun monitors the status of a campaign run on the CI Sense

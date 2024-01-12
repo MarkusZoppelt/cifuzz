@@ -175,10 +175,10 @@ func (c *containerRunCmd) buildContainerImage(buildOutput io.Writer) (string, er
 	}
 
 	b := bundler.New(&c.opts.Opts)
-	bundlePath, err := b.Bundle()
+	bundleResult, err := b.Bundle()
 	if err != nil {
 		return "", errors.WithMessage(err, "Failed to create bundle")
 	}
 
-	return container.BuildImageFromBundle(bundlePath)
+	return container.BuildImageFromBundle(bundleResult.BundlePath)
 }
