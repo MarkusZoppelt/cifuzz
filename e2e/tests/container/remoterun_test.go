@@ -96,11 +96,12 @@ var containerRemoteRunTests = &[]e2e.TestCase{
 		ToolsRequired: []string{"docker", "java", "maven"},
 		SkipOnOS:      "windows",
 		Assert: func(t *testing.T, output e2e.CommandOutput) {
-			output.Success().
+			output.Failed().
 				ErrorContains("Created fuzz container image with ID ").
 				ErrorContains("Max monitor duration is 300 seconds.").
 				ErrorContains("Finding found: test_finding, NID: fdn-testtesttesttest").
 				NoOutput()
+			require.Equal(t, output.ExitCode, 1)
 		},
 	},
 	{
@@ -128,7 +129,8 @@ var containerRemoteRunTests = &[]e2e.TestCase{
 		ToolsRequired: []string{"docker", "java", "maven"},
 		SkipOnOS:      "windows",
 		Assert: func(t *testing.T, output e2e.CommandOutput) {
-			output.Success()
+			output.Failed() // Exit code is 1 because of the monitor mode
+			require.Equal(t, output.ExitCode, 1)
 			var response api.ContainerRunResponse
 			err := json.Unmarshal([]byte(output.Stdout), &response)
 			require.NoError(t, err)

@@ -273,16 +273,6 @@ func (c *containerRemoteRunCmd) monitorCampaignRun(apiClient *api.APIClient, run
 	}
 	log.Info("Monitoring will automatically stop when the run finishes, times out, or a finding is reported.")
 
-	status, err := apiClient.GetContainerRemoteRunStatus(runNID, token)
-	if err != nil {
-		return err
-	}
-
-	if status.Run.Status == "finished" || status.Run.Status == "SUCCEEDED" {
-		log.Successf("Run finished!")
-		return nil
-	}
-
 	// if the monitor duration is set, we want to stop monitoring after the
 	// duration has passed. If the duration is less than the pull interval, we
 	// need to pull every second to make sure we don't miss the end of the run.
@@ -305,11 +295,6 @@ func (c *containerRemoteRunCmd) monitorCampaignRun(apiClient *api.APIClient, run
 	for {
 		select {
 		case <-ticker.C:
-			status, err := apiClient.GetContainerRemoteRunStatus(runNID, token)
-			if err != nil {
-				return err
-			}
-
 			findings, err := apiClient.RemoteFindingsForRun(runNID, token)
 			if err != nil {
 				return err
@@ -364,23 +349,46 @@ func (c *containerRemoteRunCmd) monitorCampaignRun(apiClient *api.APIClient, run
 			if len(findings.Findings) > 0 {
 				for idx := range findings.Findings {
 					finding := findings.Findings[idx]
-					log.Successf("Finding found: %s, NID: %s", finding.DisplayName, finding.Nid)
+					log.Warnf("Finding found: %s, NID: %s", finding.DisplayName, finding.Nid)
+					log.Warnf("  Error ID: %s", finding.ErrorID)
 				}
-				return nil
+				// we'll exit with a non-zero exit code in case a finding was
+				// reported. This is useful for CI/CD pipelines.
+				ticker.Stop()
+				os.Exit(1) //nolint:gocritic
 			}
 
-			if status.Run.Status == "cancelled" {
-				log.Warn("Run cancelled.")
-				return nil
+			status, err := apiClient.GetContainerRemoteRunStatus(runNID, token)
+			if err != nil {
+				return err
 			}
 
-			if status.Run.Status == "STOPPED" {
-				// we can exit early if the campaign run has stopped before the
-				// configuration duruation.
-				close(stopChannel)
+			ciSenseRunURL, err := cmdutils.BuildURLFromParts(c.opts.Server, "app", "projects", c.opts.Project, "runs")
+			if err != nil {
+				return err
 			}
+
+			switch strings.ToUpper(status.Run.Status) {
+			case "SUCCEEDED":
+				log.Successf("Run finished without findings.")
+				return nil
+			case "CANCELLED":
+				log.Warnf("Run cancelled. Check %s for details.", ciSenseRunURL)
+				// we'll exit with a non-zero exit code in case the run was canceled.
+				// This is useful for CI/CD pipelines.
+				ticker.Stop()
+				os.Exit(1) //nolint:gocritic
+			case "FAILED":
+				log.Warnf("Run failed unexpectedly. Check %s for details.", ciSenseRunURL)
+				// we'll exit with a non-zero exit code in case the run failed.
+				// This is useful for CI/CD pipelines.
+				ticker.Stop()
+				os.Exit(1) //nolint:gocritic
+			}
+
 		case <-stopChannel:
-			log.Info("Run finished or timed out.")
+			// we received a signal that the monitor duration has passed
+			log.Successf("No findings found after monitoring for %s.", c.opts.MonitorDuration.String())
 			return nil
 		}
 	}
