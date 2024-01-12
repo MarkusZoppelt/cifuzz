@@ -139,6 +139,18 @@ var containerRemoteRunTests = &[]e2e.TestCase{
 			require.NotEmpty(t, response.Run.FuzzTests)
 		},
 	},
+	{
+		Description:   "container remote-run command in a maven/gradle example directory bundles multiple fuzz tests",
+		CIUser:        e2e.LoggedInCIUser,
+		Command:       "container remote-run",
+		Args:          []string{fmt.Sprintf(" --project %s -v", prjNid)},
+		SampleFolder:  []string{"maven-with-multiple-fuzz-tests"},
+		ToolsRequired: []string{"docker", "java", "maven"},
+		SkipOnOS:      "windows",
+		Assert: func(t *testing.T, output e2e.CommandOutput) {
+			output.Success().ErrorContains("oneFuzzTest").ErrorContains("anotherFuzzTest")
+		},
+	},
 }
 
 func TestContainerRemoteRunWithoutConnection(t *testing.T) {
