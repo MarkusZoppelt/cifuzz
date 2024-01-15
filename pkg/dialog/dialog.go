@@ -9,6 +9,7 @@ import (
 	"atomicgo.dev/keyboard/keys"
 	"github.com/pkg/errors"
 	"github.com/pterm/pterm"
+	"github.com/spf13/viper"
 	"golang.org/x/exp/maps"
 
 	"code-intelligence.com/cifuzz/internal/api"
@@ -117,6 +118,46 @@ func ReadSecret(message string) (string, error) {
 		return "", errors.WithStack(err)
 	}
 	return secret, nil
+}
+
+// LocalOrRemoteSetup lets users chose (during init) whether they want to set
+// up a local or remote project. A choice for remote mode will return the URL
+// of the selected server.
+func LocalOrRemoteSetup(client *api.APIClient, server string) (string, error) {
+	// if the user has explicitely set a server, we assume that they want to run
+	// in remote mode. We use viper.IsSet instead of server != "" because viper
+	// will set the default value if the user doesn't explicitely provide a value.
+	if !viper.IsSet("server") {
+		choice, err := Select("Do you want to initialize cifuzz for this project in remote (recommended) or local-only mode?", map[string]string{
+			"Remote": "remote",
+			"Local":  "local",
+		}, false)
+		if err != nil {
+			return "", err
+		}
+
+		// if the user chose local mode, we return early
+		if choice == "local" {
+			return "", nil
+		}
+	}
+
+	var err error
+	// if users *have not* set a server, we ask them for one.
+	// if they *have* set a server, we skip this step.
+	if !viper.IsSet("server") {
+		server, err = InputWithDefaultValue("Enter a CI Sense server URL", server)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	server, err = api.ValidateAndNormalizeServerURL(server)
+	if err != nil {
+		return "", err
+	}
+
+	return server, nil
 }
 
 // askToPersistProjectChoice asks the user if they want to persist their
