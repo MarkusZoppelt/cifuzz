@@ -34,10 +34,11 @@ var executeTests = &[]e2e.TestCase{
 		},
 	},
 	{
-		Description:  "execute command with --json-output-file flag to create a file containing the json output",
-		Command:      "execute",
-		Args:         []string{"com.example.FuzzTestCase --json-output-file test.json"},
-		SampleFolder: []string{"folder-with-unpacked-bundle"},
+		Description:   "execute command with --json-output-file flag to create a file containing the json output",
+		Command:       "execute",
+		Args:          []string{"com.example.FuzzTestCase --json-output-file test.json"},
+		SampleFolder:  []string{"folder-with-unpacked-bundle"},
+		ToolsRequired: []string{"java"},
 		Assert: func(t *testing.T, output e2e.CommandOutput) {
 			output.FileExists("test.json")
 		},

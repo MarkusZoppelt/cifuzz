@@ -3,6 +3,7 @@
 package execute
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -15,6 +16,7 @@ import (
 	"code-intelligence.com/cifuzz/internal/cmdutils"
 	"code-intelligence.com/cifuzz/internal/config"
 	"code-intelligence.com/cifuzz/internal/testutil"
+	"code-intelligence.com/cifuzz/pkg/dependencies"
 )
 
 func Test_getFuzzer(t *testing.T) {
@@ -202,4 +204,59 @@ func TestStopSignalFile(t *testing.T) {
 	// nolint
 	cmdutils.ExecuteCommand(t, New(), os.Stdin, "my_fuzz_test", "--stop-signal-file=test")
 	assert.FileExists(t, filepath.Join(dir, "test"), "--stop-signal-file flag did not create the file 'cifuzz-execution-finished'on exit")
+}
+
+func TestLLVMSymbolizerMissing(t *testing.T) {
+	dependencies.TestMockAllDeps(t)
+	// let the llvm-symbolizer dep fail
+	dependencies.OverwriteUninstalled(dependencies.GetDep(dependencies.LLVMSymbolizer))
+
+	// Create an empty project directory and change working directory to it
+	testDir := testutil.ChdirToTempDir(t, "execute-cmd-test")
+
+	fuzzers := []*archive.Fuzzer{
+		{
+			Name:       "my_fuzz_test",
+			Engine:     "LIBFUZZER",
+			ProjectDir: testDir,
+		},
+	}
+	createBundleYamlFile(t, testDir, fuzzers)
+
+	_, stdErr, err := cmdutils.ExecuteCommand(t, New(), os.Stdin, "my_fuzz_test")
+	require.Error(t, err)
+	assert.Contains(t, stdErr, fmt.Sprintf(dependencies.MessageMissing, "llvm-symbolizer"))
+}
+
+func TestJavaMissing(t *testing.T) {
+	dependencies.TestMockAllDeps(t)
+	// let the java dep fail
+	dependencies.OverwriteUninstalled(dependencies.GetDep(dependencies.Java))
+
+	// Create an empty project directory and change working directory to it
+	testDir := testutil.ChdirToTempDir(t, "execute-cmd-test")
+
+	fuzzers := []*archive.Fuzzer{
+		{
+			Name:       "com.example.FuzzTestCase::myFuzzTest",
+			Engine:     "JAVA_LIBFUZZER",
+			ProjectDir: testDir,
+		},
+	}
+	createBundleYamlFile(t, testDir, fuzzers)
+
+	_, stdErr, err := cmdutils.ExecuteCommand(t, New(), os.Stdin, "com.example.FuzzTestCase::myFuzzTest")
+	require.Error(t, err)
+	assert.Contains(t, stdErr, fmt.Sprintf(dependencies.MessageMissing, "java"))
+}
+
+func createBundleYamlFile(t *testing.T, outputPath string, fuzzers []*archive.Fuzzer) {
+	metadata := &archive.Metadata{
+		Fuzzers: fuzzers,
+	}
+	metadataYamlContent, err := metadata.ToYaml()
+	require.NoError(t, err)
+	metadataYamlPath := filepath.Join(outputPath, archive.MetadataFileName)
+	err = os.WriteFile(metadataYamlPath, metadataYamlContent, 0644)
+	require.NoError(t, err)
 }

@@ -24,6 +24,7 @@ import (
 	"code-intelligence.com/cifuzz/internal/cmdutils"
 	"code-intelligence.com/cifuzz/internal/container"
 	"code-intelligence.com/cifuzz/internal/coverage"
+	"code-intelligence.com/cifuzz/pkg/dependencies"
 	"code-intelligence.com/cifuzz/pkg/java/sourcemap"
 	"code-intelligence.com/cifuzz/pkg/log"
 	"code-intelligence.com/cifuzz/pkg/runner/jazzer"
@@ -134,8 +135,17 @@ It is currently only intended for use with the 'cifuzz container' subcommand.
 }
 
 func (c *executeCmd) run(metadata *archive.Metadata) error {
-	var jsonOutput, printerOutput io.Writer
+	fuzzer, err := findFuzzer(c.opts.name, metadata)
+	if err != nil {
+		return err
+	}
 
+	err = checkDependencies(fuzzer)
+	if err != nil {
+		return err
+	}
+
+	var jsonOutput, printerOutput io.Writer
 	// Set the output streams depending on the flags.
 	if c.opts.JSONOutputFilePath != "" {
 		// --json-output-file implies --json
@@ -171,11 +181,6 @@ func (c *executeCmd) run(metadata *archive.Metadata) error {
 		if err != nil {
 			return err
 		}
-	}
-
-	fuzzer, err := findFuzzer(c.opts.name, metadata)
-	if err != nil {
-		return err
 	}
 
 	err = os.MkdirAll(container.ManagedSeedCorpusDir, 0o755)
@@ -480,4 +485,27 @@ func findBinary(nameToFind string, bundleMetadata *archive.Metadata, isCoverageB
 	}
 
 	return nil, errors.Errorf("fuzzer '%s' not found in a bundle metadata file", nameToFind)
+}
+
+func checkDependencies(fuzzer *archive.Fuzzer) error {
+	var deps []dependencies.Key
+	switch fuzzer.Engine {
+	case "JAVA_LIBFUZZER":
+		deps = []dependencies.Key{
+			dependencies.Java,
+		}
+	case "LIBFUZZER":
+		deps = []dependencies.Key{
+			dependencies.LLVMSymbolizer,
+			dependencies.LLVMCov,
+			dependencies.LLVMProfData,
+		}
+	default:
+		return errors.Errorf("Unsupported fuzzing engine \"%s\"", fuzzer.Engine)
+	}
+	err := dependencies.Check(deps, fuzzer.ProjectDir)
+	if err != nil {
+		return err
+	}
+	return nil
 }
