@@ -2,7 +2,6 @@ package run
 
 import (
 	"fmt"
-	"io"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -136,14 +135,9 @@ container is built and run locally instead of being pushed to a CI Sense server.
 }
 
 func (c *containerRunCmd) run() error {
-	buildOutput := c.OutOrStdout()
-	if c.opts.PrintJSON {
-		// We only want JSON output on stdout, so we print the build
-		// output to stderr.
-		buildOutput = c.ErrOrStderr()
-	}
-	buildPrinter := logging.NewBuildPrinter(buildOutput, log.ContainerBuildInProgressMsg)
-	imageID, err := c.buildContainerImage(buildOutput)
+	// We want to print the build output to stderr by default.
+	buildPrinter := logging.NewBuildPrinter(c.ErrOrStderr(), log.ContainerBuildInProgressMsg)
+	imageID, err := c.buildContainerImage()
 	if err != nil {
 		buildPrinter.StopOnError(log.ContainerBuildInProgressErrorMsg)
 		return err
@@ -168,8 +162,8 @@ func (c *containerRunCmd) run() error {
 	return nil
 }
 
-func (c *containerRunCmd) buildContainerImage(buildOutput io.Writer) (string, error) {
-	err := bundle.SetUpBundleLogging(buildOutput, c.ErrOrStderr(), &c.opts.Opts)
+func (c *containerRunCmd) buildContainerImage() (string, error) {
+	err := bundle.SetUpBundleLogging(c.ErrOrStderr(), &c.opts.Opts)
 	if err != nil {
 		return "", err
 	}

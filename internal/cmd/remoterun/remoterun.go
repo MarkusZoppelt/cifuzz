@@ -112,7 +112,7 @@ variable or by running 'cifuzz login' first.
 			// were bound to the flags of other commands before.
 			bindFlags()
 
-			err := bundle.SetUpBundleLogging(cmd.OutOrStdout(), cmd.ErrOrStderr(), &opts.Opts)
+			err := bundle.SetUpBundleLogging(cmd.ErrOrStderr(), &opts.Opts)
 			if err != nil {
 				return errors.WithMessage(err, "Failed to setup logging")
 			}
@@ -147,12 +147,7 @@ variable or by running 'cifuzz login' first.
 				opts.ProjectName = "projects/" + opts.ProjectName
 			}
 
-			// If --json was specified, print all build output to stderr
-			if opts.PrintJSON {
-				opts.Stdout = cmd.ErrOrStderr()
-			} else {
-				opts.Stdout = cmd.OutOrStdout()
-			}
+			opts.Stdout = cmd.ErrOrStderr()
 			opts.Stderr = cmd.ErrOrStderr()
 
 			opts.Server, err = api.ValidateAndNormalizeServerURL(opts.Server)
@@ -264,11 +259,7 @@ func (c *runRemoteCmd) run() error {
 		c.opts.BundlePath = bundlePath
 		c.opts.OutputPath = bundlePath
 
-		buildPrinterOutput := os.Stdout
-		if c.opts.PrintJSON {
-			buildPrinterOutput = os.Stderr
-		}
-		buildPrinter := logging.NewBuildPrinter(buildPrinterOutput, log.BundleInProgressMsg)
+		buildPrinter := logging.NewBuildPrinter(c.ErrOrStderr(), log.BundleInProgressMsg)
 
 		b := bundler.New(&c.opts.Opts)
 		_, err = b.Bundle()

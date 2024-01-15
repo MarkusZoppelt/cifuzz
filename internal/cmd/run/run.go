@@ -209,13 +209,7 @@ depends on the build system configured for the project.
 
 			opts.ArgsToPass = argsToPass
 
-			if opts.PrintJSON {
-				// We only want JSON output on stdout, so we print the build
-				// output to stderr.
-				opts.BuildStdout = cmd.ErrOrStderr()
-			} else {
-				opts.BuildStdout = cmd.OutOrStdout()
-			}
+			opts.BuildStdout = cmd.ErrOrStderr()
 			opts.BuildStderr = cmd.OutOrStderr()
 
 			opts.Stdout = cmd.OutOrStdout()

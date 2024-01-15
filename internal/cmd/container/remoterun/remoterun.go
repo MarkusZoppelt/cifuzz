@@ -13,6 +13,7 @@ import (
 
 	"code-intelligence.com/cifuzz/internal/api"
 	"code-intelligence.com/cifuzz/internal/bundler"
+	"code-intelligence.com/cifuzz/internal/cmd/bundle"
 	"code-intelligence.com/cifuzz/internal/cmdutils"
 	"code-intelligence.com/cifuzz/internal/cmdutils/auth"
 	"code-intelligence.com/cifuzz/internal/cmdutils/logging"
@@ -169,7 +170,7 @@ func (c *containerRemoteRunCmd) run() error {
 	}
 
 	buildPrinter := logging.NewBuildPrinter(c.ErrOrStderr(), log.ContainerBuildInProgressMsg)
-	imageID, err := c.buildImage()
+	imageID, err := c.buildContainerImage()
 	if err != nil {
 		buildPrinter.StopOnError(log.ContainerBuildInProgressErrorMsg)
 		return err
@@ -251,7 +252,12 @@ func (c *containerRemoteRunCmd) run() error {
 	return nil
 }
 
-func (c *containerRemoteRunCmd) buildImage() (string, error) {
+func (c *containerRemoteRunCmd) buildContainerImage() (string, error) {
+	err := bundle.SetUpBundleLogging(c.ErrOrStderr(), &c.opts.Opts)
+	if err != nil {
+		return "", err
+	}
+
 	b := bundler.New(&c.opts.Opts)
 	bundleResult, err := b.Bundle()
 	if err != nil {

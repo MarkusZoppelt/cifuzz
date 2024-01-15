@@ -25,13 +25,7 @@ func wrapBuild[BR BuildResultType](opts *RunOptions, build func(*RunOptions) (*B
 	// because that could be a file which is used to store the build log.
 	// We don't want the messages of the build printer to be printed to
 	// the build log file, so we let it print to stdout or stderr instead.
-	var buildPrinterOutput io.Writer
-	if opts.PrintJSON {
-		buildPrinterOutput = opts.Stdout
-	} else {
-		buildPrinterOutput = opts.Stderr
-	}
-	buildPrinter := logging.NewBuildPrinter(buildPrinterOutput, log.BuildInProgressMsg)
+	buildPrinter := logging.NewBuildPrinter(opts.Stderr, log.BuildInProgressMsg)
 
 	cBuildResult, err := build(opts)
 	if err != nil {
