@@ -1,7 +1,6 @@
 package gradle
 
 import (
-	"bytes"
 	"io"
 	"os"
 	"os/exec"
@@ -264,23 +263,22 @@ func GetPluginVersion(projectDir string) (string, error) {
 		return "", err
 	}
 
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-	output, err := cmd.Output()
+	outputBs, err := cmd.CombinedOutput()
+	output := string(outputBs)
 	if err != nil {
-		if strings.Contains(stderr.String(), "Task 'cifuzzPrintPluginVersion' not found") {
+		if strings.Contains(output, "Task 'cifuzzPrintPluginVersion' not found") {
 			return "", nil
 		}
 
 		log.Debugf("Command: %s", cmd.String())
-		log.Debugf("Output:\n%s", string(output))
+		log.Print(output)
 		return "", errors.WithStack(err)
 	}
 
-	match, found := regexutil.FindNamedGroupsMatch(pluginVersionRegex, string(output))
+	match, found := regexutil.FindNamedGroupsMatch(pluginVersionRegex, output)
 	if !found {
 		log.Debugf("Command: %s", cmd.String())
-		log.Debugf("Output:\n%s", string(output))
+		log.Print(output)
 		return "", errors.New("Failed to extract version from task 'cifuzzPrintPluginVersion'")
 	}
 
