@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"golang.org/x/term"
 
 	"code-intelligence.com/cifuzz/internal/api"
@@ -262,17 +263,24 @@ depends on the build system configured for the project.
 }
 
 func (c *runCmd) run() error {
-	token, err := auth.GetValidToken(c.opts.Server)
-	if err != nil {
-		var connectionError *api.ConnectionError
-		if errors.As(err, &connectionError) {
-			log.Warn("No connection to CI Sense. Findings are not uploaded.")
-		} else {
-			return err
+	isRemoteMode := c.opts.Project != "" || viper.IsSet("server")
+	var token string
+
+	// only communicate with CI Sense if in remote mode
+	if isRemoteMode {
+		var err error
+		token, err = auth.GetValidToken(c.opts.Server)
+		if err != nil {
+			var connectionError *api.ConnectionError
+			if errors.As(err, &connectionError) {
+				log.Warn("No connection to CI Sense. Findings are not uploaded.")
+			} else {
+				return err
+			}
 		}
-	}
-	if token != "" {
-		log.Success("You are authenticated.")
+		if token != "" {
+			log.Success("You are authenticated.")
+		}
 	}
 
 	adapter, err := adapter.NewAdapter(c.opts.BuildSystem)
@@ -305,21 +313,23 @@ func (c *runCmd) run() error {
 		return err
 	}
 
-	// We need this check, otherwise we might hang forever in CI
-	if c.opts.Project == "" && !c.opts.Interactive {
-		log.Info("Skipping upload of findings because no project was specified and running in non-interactive mode.")
-		return nil
-	}
-	if c.opts.Project == "" && !term.IsTerminal(int(os.Stdout.Fd())) {
-		log.Info("Skipping upload of findings because no project was specified and stdout is not a terminal.")
-		return nil
-	}
+	if isRemoteMode {
+		// We need this check, otherwise we might hang forever in CI
+		if c.opts.Project == "" && !c.opts.Interactive {
+			log.Info("Skipping upload of findings because no project was specified and running in non-interactive mode.")
+			return nil
+		}
+		if c.opts.Project == "" && !term.IsTerminal(int(os.Stdout.Fd())) {
+			log.Info("Skipping upload of findings because no project was specified and stdout is not a terminal.")
+			return nil
+		}
 
-	// check if there are findings that should be uploaded
-	if token != "" && len(c.reportHandler.Findings) > 0 {
-		err = c.uploadFindings(c.getFuzzTestNameForCampaignRun(), c.opts.BuildSystem, c.reportHandler.FirstMetrics, c.reportHandler.LastMetrics, token)
-		if err != nil {
-			return err
+		// check if there are findings that should be uploaded
+		if token != "" && len(c.reportHandler.Findings) > 0 {
+			err = c.uploadFindings(c.getFuzzTestNameForCampaignRun(), c.opts.BuildSystem, c.reportHandler.FirstMetrics, c.reportHandler.LastMetrics, token)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
