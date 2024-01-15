@@ -130,7 +130,11 @@ func (b *Bundler) Bundle() (*BundleResult, error) {
 
 	fuzzTestNames := []string{}
 	for _, fuzzer := range fuzzers {
-		fuzzTestNames = append(fuzzTestNames, fuzzer.Name)
+		if fuzzer.Engine == "LIBFUZZER" {
+			fuzzTestNames = append(fuzzTestNames, fuzzer.Target)
+		} else if fuzzer.Engine == "JAVA_LIBFUZZER" {
+			fuzzTestNames = append(fuzzTestNames, fuzzer.Name)
+		}
 	}
 
 	return &BundleResult{bundle.Name(), fuzzTestNames}, nil
