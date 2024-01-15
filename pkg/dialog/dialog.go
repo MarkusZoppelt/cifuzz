@@ -94,8 +94,14 @@ func Confirm(message string, defaultValue bool) (bool, error) {
 	return res, errors.WithStack(err)
 }
 
+// Input asks the user for input.
 func Input(message string) (string, error) {
-	input := pterm.DefaultInteractiveTextInput.WithDefaultText(message)
+	return InputWithDefaultValue(message, "")
+}
+
+// InputWithDefaultValue asks the user for input and shows a default value.
+func InputWithDefaultValue(message, defaultValue string) (string, error) {
+	input := pterm.DefaultInteractiveTextInput.WithDefaultText(message).WithDefaultValue(defaultValue)
 	result, err := input.Show()
 	if err != nil {
 		return "", errors.WithStack(err)
