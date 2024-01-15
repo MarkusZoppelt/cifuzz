@@ -4,16 +4,10 @@ import (
 	"fmt"
 
 	"github.com/Masterminds/semver"
-	"github.com/pkg/errors"
 
 	"code-intelligence.com/cifuzz/pkg/log"
 	"code-intelligence.com/cifuzz/pkg/runfiles"
 )
-
-var errDeps = errors.New(`unable to run command due to missing/invalid dependencies.
-For installation instruction see:
-
-	https://docs.code-intelligence.com/ci-fuzz/how-to/ci-fuzz-installation`)
 
 type Key string
 
@@ -30,16 +24,19 @@ const (
 
 	Java           Key = "java"
 	Maven          Key = "mvn"
-	MavenExtension Key = "cifuzz maven extension"
+	MavenExtension Key = "CI Fuzz Maven extension"
 	Gradle         Key = "gradle"
-	GradlePlugin   Key = "cifuzz gradle plugin"
+	GradlePlugin   Key = "CI Fuzz Gradle plugin"
 
 	Node Key = "node"
 
 	VisualStudio Key = "Visual Studio"
 
-	MessageVersion = "cifuzz requires %s %s or higher, found %s"
-	MessageMissing = "cifuzz requires %s, but it is not installed"
+	MessageVersion             = "CI Fuzz requires %s version >=%s but found %s"
+	MessageMissing             = "CI Fuzz requires %s, but it is not installed or can't be accessed"
+	MessageInstallInstructions = `For install instructions see:
+
+  https://docs.code-intelligence.com/ci-fuzz/how-to/ci-fuzz-installation`
 )
 
 // Dependency represents a single dependency
@@ -55,22 +52,6 @@ type Dependency struct {
 	Installed  func(*Dependency, string) bool
 }
 
-// Compares MinVersion against GetVersion
-func (dep *Dependency) checkVersion(projectDir string) bool {
-	currentVersion, err := dep.GetVersion(dep, projectDir)
-	if err != nil {
-		log.Warnf("Unable to get current version for %s: %v", dep.Key, err)
-		// we want to be lenient if we were not able to extract the version
-		return true
-	}
-
-	if currentVersion.Compare(&dep.MinVersion) == -1 {
-		log.Warnf(MessageVersion, dep.Key, dep.MinVersion.String(), currentVersion.String())
-		return false
-	}
-	return true
-}
-
 // helper to easily check against functions from the runfiles.RunfilesFinder interface
 func (dep *Dependency) checkFinder(finderFunc func() (string, error)) bool {
 	if _, err := finderFunc(); err != nil {
@@ -84,7 +65,7 @@ func (dep *Dependency) checkFinder(finderFunc func() (string, error)) bool {
 func Check(keys []Key, projectDir string) error {
 	err := check(keys, deps, runfiles.Finder, projectDir)
 	if err != nil {
-		return errors.WithMessage(err, "Invalid dependencies")
+		return err
 	}
 
 	return nil
@@ -101,7 +82,6 @@ func Version(key Key, projectDir string) (*semver.Version, error) {
 }
 
 func check(keys []Key, deps Dependencies, finder runfiles.RunfilesFinder, projectDir string) error {
-	allFine := true
 	for _, key := range keys {
 		dep, found := deps[key]
 		if !found {
@@ -111,9 +91,7 @@ func check(keys []Key, deps Dependencies, finder runfiles.RunfilesFinder, projec
 		dep.finder = finder
 
 		if !dep.Installed(dep, projectDir) {
-			log.Warnf(MessageMissing, dep.Key)
-			allFine = false
-			continue
+			return fmt.Errorf("%s\n%s", fmt.Sprintf(MessageMissing, dep.Key), MessageInstallInstructions)
 		}
 
 		if dep.MinVersion.Equal(semver.MustParse("0.0.0")) {
@@ -122,14 +100,17 @@ func check(keys []Key, deps Dependencies, finder runfiles.RunfilesFinder, projec
 			log.Debugf("Checking dependency: %s version >= %s", dep.Key, dep.MinVersion.String())
 		}
 
-		if !dep.checkVersion(projectDir) {
-			allFine = false
+		currentVersion, err := dep.GetVersion(dep, projectDir)
+		if err != nil {
+			log.Warnf("Unable to get current version for %s: %v", dep.Key, err)
+			// we want to be lenient if we were not able to extract the version
+			continue
 		}
 
+		if currentVersion.Compare(&dep.MinVersion) == -1 {
+			return fmt.Errorf(MessageVersion, dep.Key, dep.MinVersion.String(), currentVersion.String())
+		}
 	}
 
-	if !allFine {
-		return errDeps
-	}
 	return nil
 }
