@@ -79,12 +79,6 @@ func CreateProjectConfig(configDir string, server string, project string) (strin
 		return "", errors.WithStack(err)
 	}
 
-	// if the user is using the default server,
-	// we don't want to save it in the config file
-	if strings.Contains(server, "app.code-intelligence.com") {
-		server = ""
-	}
-
 	// setup config struct with (default) values
 	config := struct {
 		LastUpdated string
