@@ -12,6 +12,7 @@ import (
 
 	"code-intelligence.com/cifuzz/internal/api"
 	"code-intelligence.com/cifuzz/internal/cmdutils"
+	"code-intelligence.com/cifuzz/internal/cmdutils/auth"
 	"code-intelligence.com/cifuzz/internal/config"
 	"code-intelligence.com/cifuzz/pkg/dependencies"
 	"code-intelligence.com/cifuzz/pkg/dialog"
@@ -21,6 +22,7 @@ import (
 )
 
 type options struct {
+	apiClient   *api.APIClient
 	Dir         string
 	BuildSystem string
 	Interactive bool   `mapstructure:"interactive"`
@@ -93,6 +95,8 @@ func New() *cobra.Command {
 			if err != nil {
 				return err
 			}
+
+			opts.apiClient = api.NewClient(opts.Server)
 			return run(opts)
 		},
 		Args:      cobra.MatchAll(cobra.MaximumNArgs(1), cobra.OnlyValidArgs),
@@ -114,21 +118,78 @@ func New() *cobra.Command {
 }
 
 func run(opts *options) error {
-	setUpAndMentionBuildSystemIntegrations(opts.Dir, opts.BuildSystem, opts.testLang)
+	// explicitly inform the user about an existing config file
+	exists, err := fileutil.Exists(config.ProjectConfigFile)
+	if err != nil {
+		return err
+	}
+	if exists {
+		log.Warnf("Config file already exists in %s", config.ProjectConfigFile)
+		return cmdutils.ErrSilent
+	}
+
+	if opts.Interactive {
+		opts.Server, err = dialog.LocalOrRemoteSetup(opts.apiClient, opts.Server)
+		if err != nil {
+			return err
+		}
+
+		if opts.Server != "" && opts.Project == "" {
+			token, err := auth.EnsureValidToken(opts.Server)
+			if err != nil {
+				return err
+			}
+
+			// server might have changed, so we need to create a new client
+			opts.apiClient = api.NewClient(opts.Server)
+			projects, err := opts.apiClient.ListProjects(token)
+			if err != nil {
+				return err
+			}
+
+			opts.Project, err = dialog.ProjectPickerWithOptionNew(projects, "Select a project", opts.apiClient, token)
+			if err != nil {
+				return err
+			}
+
+			if opts.Project == "<<cancel>>" {
+				log.Info("Canceled")
+				return cmdutils.ErrSilent
+			}
+		}
+	} else { // non-interactive mode
+		// server always has a default value, so we need to check if it's set by
+		// the user
+		if !viper.IsSet("server") {
+			opts.Server = ""
+		}
+
+		serverSetProjectNotSet := viper.IsSet("server") && opts.Project == ""
+		serverNotSetProjectSet := !viper.IsSet("server") && opts.Project != ""
+		if serverSetProjectNotSet || serverNotSetProjectSet {
+			msg := "You are running in non-interactive mode. Please make sure that both --server and --project are set correctly."
+			return cmdutils.WrapIncorrectUsageError(errors.New(msg))
+		}
+	}
+
+	isLocalMode := opts.Server == ""
+	if isLocalMode {
+		log.Note("Running in local-only mode. If you want to use cifuzz in remote mode, you can manually add a 'server' and 'project' entry to your cifuzz.yaml.")
+	} else {
+		log.Note("Running in remote mode. If you want to use cifuzz in local-only mode, you can manually remove the 'server' and 'project' entries from your cifuzz.yaml.")
+	}
+
 	log.Debugf("Creating config file in directory: %s", opts.Dir)
 
 	configpath, err := config.CreateProjectConfig(opts.Dir, opts.Server, opts.Project)
 	if err != nil {
-		// explicitly inform the user about an existing config file
-		if errors.Is(err, os.ErrExist) && configpath != "" {
-			log.Warnf("Config already exists in %s", configpath)
-			err = cmdutils.ErrSilent
-		}
 		log.Error(err, "Failed to create config: %v", err)
 		return err
 	}
 
 	log.Successf("Configuration saved in %s", fileutil.PrettifyPath(configpath))
+
+	setUpAndMentionBuildSystemIntegrations(opts.Dir, opts.BuildSystem, opts.testLang)
 
 	log.Print(`
 Use 'cifuzz create' to create your first fuzz test.`)
