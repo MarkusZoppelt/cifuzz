@@ -53,10 +53,50 @@ runs:
         cat fuzzing.log | grep -E "Findings:\s+1"
       shell: bash
 
+    - name: Run Maven Multi Module Example
+      run: |
+        cd examples/maven-multi
+        cifuzz run com.example.FuzzTestCase 2>&1 | tee fuzzing.log
+        cat fuzzing.log | grep "Remote Code Execution"
+        cat fuzzing.log | grep -E "Findings:\s+1"
+      shell: bash
+
     - name: Run Gradle Example
       run: |
         cd examples/gradle
         cifuzz run com.example.FuzzTestCase 2>&1 | tee fuzzing.log
         cat fuzzing.log | grep "Remote Code Execution"
+        cat fuzzing.log | grep -E "Findings:\s+1"
+      shell: bash
+
+    - name: Run Gradle Kotlin Example
+      run: |
+        cd examples/gradle-kotlin
+        cifuzz run com.example.FuzzTestCase 2>&1 | tee fuzzing.log
+        cat fuzzing.log | grep "Remote Code Execution"
+        cat fuzzing.log | grep -E "Findings:\s+1"
+      shell: bash
+
+    - name: Run Gradle Multi Module Example
+      run: |
+        cd examples/gradle-multi
+        cifuzz run com.example.FuzzTestCase 2>&1 | tee fuzzing.log
+        cat fuzzing.log | grep "Remote Code Execution"
+        cat fuzzing.log | grep -E "Findings:\s+1"
+      shell: bash
+
+    - name: Run Nodejs Example
+      run: |
+        cd examples/nodejs
+        cifuzz run com.example.FuzzTestCase 2>&1 | tee fuzzing.log
+        cat fuzzing.log | grep "Error: Crash!"
+        cat fuzzing.log | grep -E "Findings:\s+1"
+      shell: bash
+
+    - name: Run Nodejs Typescript Example
+      run: |
+        cd examples/nodejs-typescript
+        cifuzz run com.example.FuzzTestCase 2>&1 | tee fuzzing.log
+        cat fuzzing.log | grep "Error: Crash!"
         cat fuzzing.log | grep -E "Findings:\s+1"
       shell: bash
