@@ -95,58 +95,6 @@ func newWithOptions(opts *options) *cobra.Command {
 }
 
 func (cmd *findingCmd) run(args []string) error {
-	token, err := auth.GetValidToken(cmd.opts.Server)
-	if err != nil {
-		var connectionError *api.ConnectionError
-		if errors.As(err, &connectionError) {
-			log.Warnf("No connection to CI Sense. Only local findings are shown.")
-		} else {
-			return err
-		}
-	}
-	if token != "" {
-		log.Success("You are authenticated.")
-	}
-
-	var remoteAPIFindings *api.Findings
-
-	if token != "" {
-		log.Info("Note that findings that have already been uploaded to CI Sense will only be shown if you are authenticated and 'project' is set.")
-
-		apiClient := api.NewClient(cmd.opts.Server)
-
-		// get remote findings if project is set and user is authenticated
-		if cmd.opts.Project != "" {
-			remoteAPIFindings, err = apiClient.DownloadRemoteFindings(cmd.opts.Project, token)
-			if err != nil {
-				return err
-			}
-		} else if cmd.opts.Interactive { // let the user select a project
-			remoteProjects, err := apiClient.ListProjects(token)
-			if err != nil {
-				return err
-			}
-			cmd.opts.Project, err = dialog.ProjectPicker(remoteProjects, "Select a remote project:")
-			if err != nil {
-				return err
-			}
-			if cmd.opts.Project != "<<cancel>>" {
-				remoteAPIFindings, err = apiClient.DownloadRemoteFindings(cmd.opts.Project, token)
-				if err != nil {
-					return err
-				}
-
-				err = dialog.AskToPersistProjectChoice(cmd.opts.Project)
-				if err != nil {
-					return err
-				}
-			}
-		} else {
-			log.Warnf(`You are authenticated but did not specify a remote project.
-Skipping remote findings because running in non-interactive mode.`)
-		}
-	}
-
 	localFindings, err := finding.LocalFindings(cmd.opts.ProjectDir)
 	if err != nil {
 		return err
@@ -155,14 +103,70 @@ Skipping remote findings because running in non-interactive mode.`)
 	// store remote findings in a slice of finding.Finding so that we can search
 	// them individually later. These won't be stored on disk.
 	var remoteFindings []*finding.Finding
-	if remoteAPIFindings != nil {
-		for i := range remoteAPIFindings.Findings {
-			// we access the element via index to avoid copying the struct
-			rf, err := api.RemoteToLocalFinding(&remoteAPIFindings.Findings[i])
-			if err != nil {
+	var remoteAPIFindings *api.Findings
+
+	isRemoteMode := cmd.opts.Project != "" || viper.IsSet("server")
+	// only communicate with CI Sense if in remote mode
+	if isRemoteMode {
+		token, err := auth.GetValidToken(cmd.opts.Server)
+		if err != nil {
+			var connectionError *api.ConnectionError
+			if errors.As(err, &connectionError) {
+				log.Warnf("No connection to CI Sense. Only local findings are shown.")
+			} else {
 				return err
 			}
-			remoteFindings = append(remoteFindings, rf)
+		}
+		if token != "" {
+			log.Success("You are authenticated.")
+		}
+
+		if token != "" {
+			log.Info("Note that findings that have already been uploaded to CI Sense will only be shown if you are authenticated and 'project' is set.")
+
+			apiClient := api.NewClient(cmd.opts.Server)
+
+			// get remote findings if project is set and user is authenticated
+			if cmd.opts.Project != "" {
+				remoteAPIFindings, err = apiClient.DownloadRemoteFindings(cmd.opts.Project, token)
+				if err != nil {
+					return err
+				}
+			} else if cmd.opts.Interactive { // let the user select a project
+				remoteProjects, err := apiClient.ListProjects(token)
+				if err != nil {
+					return err
+				}
+				cmd.opts.Project, err = dialog.ProjectPicker(remoteProjects, "Select a remote project:")
+				if err != nil {
+					return err
+				}
+				if cmd.opts.Project != "<<cancel>>" {
+					remoteAPIFindings, err = apiClient.DownloadRemoteFindings(cmd.opts.Project, token)
+					if err != nil {
+						return err
+					}
+
+					err = dialog.AskToPersistProjectChoice(cmd.opts.Project)
+					if err != nil {
+						return err
+					}
+				}
+			} else {
+				log.Warnf(`You are authenticated but did not specify a remote project.
+Skipping remote findings because running in non-interactive mode.`)
+			}
+		}
+
+		if remoteAPIFindings != nil {
+			for i := range remoteAPIFindings.Findings {
+				// we access the element via index to avoid copying the struct
+				rf, err := api.RemoteToLocalFinding(&remoteAPIFindings.Findings[i])
+				if err != nil {
+					return err
+				}
+				remoteFindings = append(remoteFindings, rf)
+			}
 		}
 	}
 
@@ -231,6 +235,7 @@ Skipping remote findings because running in non-interactive mode.`)
 	findingName := args[0]
 
 	// check if the finding is a remote finding...
+	// if running in local-only mode, remoteFindings will be empty
 	for _, remoteFinding := range remoteFindings {
 		if strings.TrimPrefix(remoteFinding.Name, fmt.Sprintf("projects/%s/findings/", cmd.opts.Project)) == findingName {
 			return cmd.printFinding(remoteFinding)
