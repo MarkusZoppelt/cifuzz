@@ -15,7 +15,10 @@ To be able to access the plugin, add the CI repository as a plugin repository to
         maven {
           name "CodeIntelligenceRepository"
           url "https://gitlab.code-intelligence.com/api/v4/projects/89/packages/maven"
-          credentials(PasswordCredentials.class)
+          credentials {
+            username CodeIntelligenceRepositoryUsername
+            password CodeIntelligenceRepositoryPassword
+          }
           content {
             includeGroupByRegex("com\\.code-intelligence.*")
           }
@@ -30,7 +33,10 @@ To resolve CI Fuzz dependencies, also add the CI repository in your project's or
       maven {
         name "CodeIntelligenceRepository"
         url "https://gitlab.code-intelligence.com/api/v4/projects/89/packages/maven"
-        credentials(PasswordCredentials.class)
+        credentials {
+          username CodeIntelligenceRepositoryUsername
+          password CodeIntelligenceRepositoryPassword
+        }
         content {
           includeGroupByRegex("com\\.code-intelligence.*")
         }
