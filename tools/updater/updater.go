@@ -59,6 +59,7 @@ func updateDependencyForDep(dep string, version string) {
 			"examples/gradle/build.gradle",
 			// integration-test projects are updated dynamically in the tests
 			"internal/bundler/testdata/jazzer/gradle/multi-custom/testsuite/build.gradle.kts",
+			"internal/cmdutils/resolve/testdata/gradle/build.gradle",
 			"pkg/messaging/instructions/gradle",
 			"pkg/messaging/instructions/gradlekotlin",
 			"test/projects/gradle/app/build.gradle.kts",
