@@ -276,7 +276,7 @@ They will now be used as a seed input for all runs of the fuzz test,
 including remote runs with artifacts created via 'cifuzz bundle' and
 regression tests. For more information on regression tests, see:
 
-    https://github.com/CodeIntelligenceTesting/cifuzz/blob/main/docs/Regression-Testing.md
+    https://docs.code-intelligence.com/ci-fuzz/how-to/ci-fuzz-running-a-fuzz-test#run-a-regression-fuzz-test
 `, strings.Join(crashingInputs, "\n    "))
 }
 

@@ -19,7 +19,7 @@
 
 <a href="https://docs.code-intelligence.com/cifuzz-cli" target="_blank">Docs</a>
 |
-<a href="https://github.com/CodeIntelligenceTesting/cifuzz/blob/main/docs/Glossary.md">Glossary</a>
+<a href="https://docs.code-intelligence.com/fuzzing-academy/glossary">Glossary</a>
 |
 <a href="https://github.com/CodeIntelligenceTesting/cifuzz/tree/main/examples">Examples</a>
 |

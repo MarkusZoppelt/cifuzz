@@ -277,7 +277,7 @@ func AddSeedCorpusFlag(cmd *cobra.Command) func() {
 	cmd.Flags().StringArrayP("seed-corpus", "s", nil,
 		"A `directory` containing sample inputs used as seeds for fuzzing the code under test.\n"+
 			"This is used in addition to inputs found in the inputs directory of the fuzz test.\n"+
-			"See https://github.com/CodeIntelligenceTesting/cifuzz/blob/main/docs/Glossary.md#seed-corpus.\n"+
+			"See https://docs.code-intelligence.com/fuzzing-academy/glossary#seed-corpus.\n"+
 			"This flag can be used multiple times.")
 	return func() {
 		ViperMustBindPFlag("seed-corpus-dirs", cmd.Flags().Lookup("seed-corpus"))

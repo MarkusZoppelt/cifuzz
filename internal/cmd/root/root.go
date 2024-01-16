@@ -189,10 +189,6 @@ accidentally (like overwriting files), you might want to try
 running it without sandboxing:
 
     %s --use-sandbox=false
-
-For more information on cifuzz sandboxing, see:
-
-    https://github.com/CodeIntelligenceTesting/cifuzz/blob/main/docs/Getting-Started.md#sandboxing
 `
 			log.Notef(msg, shellescape.QuoteCommand(os.Args))
 		}
