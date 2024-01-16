@@ -79,8 +79,8 @@ runs:
 
     - name: Run Gradle Multi Module Example
       run: |
-        cd examples/gradle-multi
-        cifuzz run com.example.FuzzTestCase 2>&1 | tee fuzzing.log
+        cd examples/gradle-multi/testsuite
+        cifuzz run com.example.TestCases::myFuzzTest 2>&1 | tee fuzzing.log
         cat fuzzing.log | grep "Remote Code Execution"
         cat fuzzing.log | grep -E "Findings:\s+1"
       shell: bash
@@ -88,7 +88,8 @@ runs:
     - name: Run Nodejs Example
       run: |
         cd examples/nodejs
-        cifuzz run com.example.FuzzTestCase 2>&1 | tee fuzzing.log
+        npm install
+        cifuzz run FuzzTestCase 2>&1 | tee fuzzing.log
         cat fuzzing.log | grep "Error: Crash!"
         cat fuzzing.log | grep -E "Findings:\s+1"
       shell: bash
@@ -96,7 +97,8 @@ runs:
     - name: Run Nodejs Typescript Example
       run: |
         cd examples/nodejs-typescript
-        cifuzz run com.example.FuzzTestCase 2>&1 | tee fuzzing.log
+        npm install
+        cifuzz run FuzzTestCase 2>&1 | tee fuzzing.log
         cat fuzzing.log | grep "Error: Crash!"
         cat fuzzing.log | grep -E "Findings:\s+1"
       shell: bash
