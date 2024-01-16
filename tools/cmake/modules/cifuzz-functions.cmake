@@ -59,8 +59,6 @@ function(enable_fuzz_testing)
           # Undefine NDEBUG, which is explicitly defined by the RelWithDebInfo CMake configuration, so that asserts are
           # kept.
           -UNDEBUG
-          # disable optimizations to ensure high debuggability
-          -O0
       )
     endif()
   endif()
