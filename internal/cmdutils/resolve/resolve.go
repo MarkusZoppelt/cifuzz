@@ -91,11 +91,10 @@ func resolve(path, buildSystem, projectDir string) (string, error) {
 		var testDirs []string
 		var err error
 		if buildSystem == config.BuildSystemMaven {
-			testDir, err := maven.GetTestDir(projectDir)
+			testDirs, err = maven.GetTestDirs(projectDir)
 			if err != nil {
 				return "", err
 			}
-			testDirs = append(testDirs, testDir)
 		} else if buildSystem == config.BuildSystemGradle {
 			testDirs, err = gradle.GetTestSourceSets(projectDir)
 			if err != nil {

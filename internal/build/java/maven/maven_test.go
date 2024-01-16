@@ -11,13 +11,14 @@ import (
 	"code-intelligence.com/cifuzz/integration-tests/shared"
 )
 
-func Test_GetTestDir(t *testing.T) {
+func Test_GetTestDirs(t *testing.T) {
 	projectDir := shared.CopyTestdataDir(t, "maven")
 	t.Logf("Project dir: %s", projectDir)
 
-	testDir, err := GetTestDir(projectDir)
+	testDirs, err := GetTestDirs(projectDir)
 	require.NoError(t, err)
-	assert.Equal(t, filepath.Join(projectDir, "src", "test", "java"), testDir)
+	require.Len(t, testDirs, 1)
+	assert.Equal(t, filepath.Join(projectDir, "src", "test", "java"), testDirs[0])
 
 	// adjust pom.xml to include tag <testSourceDirectory>
 	newTestDir := "fuzztests"
@@ -27,17 +28,19 @@ func Test_GetTestDir(t *testing.T) {
 		"<build>",
 		true,
 	)
-	testDir, err = GetTestDir(projectDir)
+	testDirs, err = GetTestDirs(projectDir)
 	require.NoError(t, err)
-	assert.Equal(t, filepath.Join(projectDir, newTestDir), testDir)
+	require.Len(t, testDirs, 1)
+	assert.Equal(t, filepath.Join(projectDir, newTestDir), testDirs[0])
 }
 
-func Test_GetSourceDir(t *testing.T) {
+func Test_GetSourceDirs(t *testing.T) {
 	projectDir := shared.CopyTestdataDir(t, "maven")
 
-	sourceDir, err := GetSourceDir(projectDir)
+	sourceDirs, err := GetSourceDirs(projectDir)
 	require.NoError(t, err)
-	assert.Equal(t, filepath.Join(projectDir, "src", "main", "java"), sourceDir)
+	require.Len(t, sourceDirs, 1)
+	assert.Equal(t, filepath.Join(projectDir, "src", "main", "java"), sourceDirs[0])
 
 	// adjust pom.xml to include tag <sourceDirectory>
 	newSourceDir := "example"
@@ -47,7 +50,8 @@ func Test_GetSourceDir(t *testing.T) {
 		"<build>",
 		true,
 	)
-	sourceDir, err = GetSourceDir(projectDir)
+	sourceDirs, err = GetSourceDirs(projectDir)
 	require.NoError(t, err)
-	assert.Equal(t, filepath.Join(projectDir, newSourceDir), sourceDir)
+	require.Len(t, sourceDirs, 1)
+	assert.Equal(t, filepath.Join(projectDir, newSourceDir), sourceDirs[0])
 }

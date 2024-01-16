@@ -146,62 +146,64 @@ func GetRootDirectory(projectDir string) (string, error) {
 	return rootDir, nil
 }
 
-// GetTestDir returns the value of <testSourceDirectory> for the fuzz project
-// (which may be one of the sub-modules in a multi-project)
-func GetTestDir(projectDir string) (string, error) {
+func GetTestDirs(projectDir string) ([]string, error) {
 	cmd := runMaven(projectDir, []string{"validate", "-q", "-DcifuzzPrintTestSourceFolders"})
 	output, err := cmd.Output()
 	if err != nil {
 		log.Debugf("%s\n", string(output))
-		return "", cmdutils.WrapExecError(errors.WithStack(err), cmd)
+		return nil, cmdutils.WrapExecError(errors.WithStack(err), cmd)
 	}
 
 	result := testSourceFoldersRegex.FindStringSubmatch(string(output))
 	if result == nil {
-		return "", errors.New("Unable to parse maven test sources.")
+		return nil, errors.New("Unable to parse maven test sources.")
 	}
-	testDir := strings.TrimSpace(result[1])
-	log.Debugf("Found Maven test source at: %s", testDir)
+	paths := strings.Split(strings.TrimSpace(result[1]), string(os.PathListSeparator))
 
-	exists, err := fileutil.Exists(testDir)
-	if err != nil {
-		return "", err
+	// only return valid paths
+	var testDirs []string
+	for _, path := range paths {
+		exists, err := fileutil.Exists(path)
+		if err != nil {
+			return nil, errors.WithMessagef(err, "Error checking if Maven test directory %s exists", path)
+		}
+		if exists {
+			testDirs = append(testDirs, path)
+		}
 	}
-	if exists {
-		return testDir, nil
-	}
-	log.Debugf("Ignoring Maven test source directory %s: directory does not exist", testDir)
 
-	return "", nil
+	log.Debugf("Found maven test sources at: %s", testDirs)
+	return testDirs, nil
 }
 
-// GetSourceDir returns the value of <sourceDirectory> for the fuzz project
-// (which may be one of the sub-modules in a multi-project)
-func GetSourceDir(projectDir string) (string, error) {
+func GetSourceDirs(projectDir string) ([]string, error) {
 	cmd := runMaven(projectDir, []string{"validate", "-q", "-DcifuzzPrintMainSourceFolders"})
 	output, err := cmd.Output()
 	if err != nil {
 		log.Debugf("%s\n", string(output))
-		return "", errors.WithMessagef(err, "Failed to get source directory of project")
+		return nil, errors.WithMessagef(err, "Failed to get source directory of project")
 	}
 
 	result := mainSourceFoldersRegex.FindStringSubmatch(string(output))
 	if result == nil {
-		return "", errors.New("Unable to parse maven main sources.")
+		return nil, errors.New("Unable to parse maven main sources.")
 	}
-	sourceDir := strings.TrimSpace(result[1])
-	log.Debugf("Found Maven source at: %s", sourceDir)
+	paths := strings.Split(strings.TrimSpace(result[1]), string(os.PathListSeparator))
 
-	exists, err := fileutil.Exists(sourceDir)
-	if err != nil {
-		return "", errors.WithMessagef(err, "Error checking if Maven source directory %s exists", sourceDir)
+	// only return valid paths
+	var sourceDirs []string
+	for _, path := range paths {
+		exists, err := fileutil.Exists(path)
+		if err != nil {
+			return nil, errors.WithMessagef(err, "Error checking if Maven source directory %s exists", path)
+		}
+		if exists {
+			sourceDirs = append(sourceDirs, path)
+		}
 	}
-	if exists {
-		return sourceDir, nil
-	}
-	log.Debugf("Ignoring Maven source directory %s: directory does not exist", sourceDir)
 
-	return "", nil
+	log.Debugf("Found maven main sources at: %s", sourceDirs)
+	return sourceDirs, nil
 }
 
 func GetOverriddenJazzerVersion(projectDir string) string {
