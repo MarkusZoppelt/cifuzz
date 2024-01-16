@@ -11,7 +11,7 @@ public class TestCases {
         OutOfBounds outOfBounds = new OutOfBounds();
         outOfBounds.trigger(0);
     }
-    
+
     @Test
     public void remoteCodeTest() {
         // Example unit test

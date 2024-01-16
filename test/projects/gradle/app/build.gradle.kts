@@ -18,3 +18,17 @@ repositories {
 	}
 	mavenCentral()
 }
+
+cifuzz {
+	mainSourceSet.set(sourceSets.create("more"))
+}
+
+sourceSets {
+	test {
+		java {
+			compileClasspath += sourceSets["more"].output
+			runtimeClasspath += sourceSets["more"].output
+			srcDir("src/test/java")
+		}
+	}
+}

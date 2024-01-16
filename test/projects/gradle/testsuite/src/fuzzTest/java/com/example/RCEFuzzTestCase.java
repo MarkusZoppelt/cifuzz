@@ -17,7 +17,7 @@ public class RCEFuzzTestCase {
 
     @FuzzTest
     void fuzzTestDontTrigger(FuzzedDataProvider data) {
-        // Don't trigger remote code execution 
+        // Don't trigger remote code execution
         // by using the overloaded constructor
         String b = data.consumeRemainingAsString();
 

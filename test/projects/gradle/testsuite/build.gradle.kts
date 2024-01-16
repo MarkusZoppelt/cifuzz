@@ -19,6 +19,24 @@ repositories {
 	mavenCentral()
 }
 
-sourceSets.getByName("test") {
-    java.srcDir("fuzzTests")
+val fuzzTest = sourceSets.create("fuzzTest") {
+	java {
+		compileClasspath += project(":app").sourceSets["more"].output
+		runtimeClasspath += project(":app").sourceSets["more"].output
+		srcDir("src/fuzzTest/java")
+	}
+}
+
+tasks.register<Test>(sourceSets["fuzzTest"].name) {
+	classpath = fuzzTest.runtimeClasspath
+	testClassesDirs = fuzzTest.output.classesDirs
+	useJUnitPlatform()
+}
+
+cifuzz {
+	testSourceSet.set(fuzzTest)
+}
+
+dependencies {
+	"fuzzTestImplementation"(project(":app"))
 }
