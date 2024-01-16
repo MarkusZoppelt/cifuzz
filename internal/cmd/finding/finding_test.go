@@ -87,7 +87,6 @@ func TestListFindings_Authenticated(t *testing.T) {
 	t.Setenv("CIFUZZ_API_TOKEN", "token")
 	server := mockserver.New(t)
 	server.Handlers["/v1/projects"] = mockserver.ReturnResponse(t, mockserver.ProjectsJSON)
-	server.Handlers["/v2/error-details"] = mockserver.ReturnResponse(t, mockserver.ErrorDetailsJSON)
 	server.Start(t)
 
 	projectDir := testutil.BootstrapEmptyProject(t, "test-list-findings-")
@@ -172,7 +171,6 @@ func TestPrintFinding_Authenticated(t *testing.T) {
 	t.Setenv("CIFUZZ_API_TOKEN", "token")
 	server := mockserver.New(t)
 	server.Handlers["/v1/projects"] = mockserver.ReturnResponse(t, mockserver.ProjectsJSON)
-	server.Handlers["/v2/error-details"] = mockserver.ReturnResponse(t, mockserver.ErrorDetailsJSON)
 	server.Start(t)
 
 	projectDir := testutil.BootstrapEmptyProject(t, "test-print-finding-")
@@ -227,7 +225,6 @@ func TestPrintRemoteFinding_Authenticated(t *testing.T) {
 	t.Setenv("CIFUZZ_API_TOKEN", "token")
 	server := mockserver.New(t)
 	server.Handlers["/v1/projects"] = mockserver.ReturnResponse(t, mockserver.ProjectsJSON)
-	server.Handlers["/v2/error-details"] = mockserver.ReturnResponse(t, mockserver.ErrorDetailsJSON)
 	server.Handlers["/v1/projects/my-project/findings"] = mockserver.ReturnResponse(t, mockserver.RemoteFindingsJSON)
 	server.Start(t)
 

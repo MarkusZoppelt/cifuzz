@@ -24,7 +24,6 @@ func TestRunWithUpload(t *testing.T, dir string, cifuzz string, fuzzTestName str
 
 	// define handlers
 	server.Handlers["/v1/projects"] = mockserver.ReturnResponse(t, mockserver.ProjectsJSON)
-	server.Handlers["/v2/error-details"] = mockserver.ReturnResponse(t, mockserver.ProjectsJSON)
 	server.Handlers[fmt.Sprintf("/v1/projects/%s/findings", projectName)] = mockserver.ReturnResponse(t, "{}")
 
 	// We expect the run command to POST a campaign run with the correct fuzzing

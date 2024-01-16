@@ -113,7 +113,6 @@ func TestFindingList(t *testing.T) {
 
 	server := mockserver.New(t)
 	server.Handlers["/v1/projects"] = mockserver.ReturnResponseIfValidToken(t, mockserver.ProjectsJSON)
-	server.Handlers["/v2/error-details"] = mockserver.ReturnResponseIfValidToken(t, mockserver.ErrorDetailsJSON)
 
 	e2e.RunTests(t, *findingTests, server)
 }

@@ -19,9 +19,6 @@ const InvalidToken = "invalid-token"
 //go:embed testdata/projects.json
 var ProjectsJSON string
 
-//go:embed testdata/error_details.json
-var ErrorDetailsJSON string
-
 //go:embed testdata/remote_findings.json
 var RemoteFindingsJSON string
 
