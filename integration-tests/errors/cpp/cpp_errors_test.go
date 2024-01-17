@@ -89,6 +89,7 @@ func TestIntegration_CPPErrors(t *testing.T) {
 				"--no-notifications",
 				"--use-sandbox=false",
 			}, tc.args...)
+			runArgs = append(runArgs, "--", "-DCMAKE_BUILD_TYPE=Debug")
 			cifuzzRunner.Run(t, &shared.RunOptions{
 				FuzzTest: fmt.Sprintf("%s_fuzztest", tc.id),
 				Env:      tc.env,
