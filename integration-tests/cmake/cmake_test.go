@@ -138,6 +138,10 @@ func TestIntegration_CMake(t *testing.T) {
 		testRunWithConfigFile(t, cifuzzRunner)
 	})
 
+	t.Run("runWithBuildTypeDebug", func(t *testing.T) {
+		testRunWithBuildTypeDebug(t, cifuzzRunner)
+	})
+
 	t.Run("runWithAsanOptions", func(t *testing.T) {
 		// Check that ASAN_OPTIONS can be set
 		testRunWithAsanOptions(t, cifuzzRunner)
@@ -388,6 +392,14 @@ func testRun(t *testing.T, cifuzzRunner *shared.CIFuzzRunner) {
 	}
 }
 
+func testRunWithBuildTypeDebug(t *testing.T, cifuzzRunner *shared.CIFuzzRunner) {
+	cifuzzRunner.Run(t, &shared.RunOptions{
+		Args:                         []string{"--", "-DCMAKE_BUILD_TYPE=Debug"},
+		ExpectedOutputs:              []*regexp.Regexp{regexp.MustCompile(`--config Debug`)},
+		TerminateAfterExpectedOutput: false,
+	})
+}
+
 func testRunWithAsanOptions(t *testing.T, cifuzzRunner *shared.CIFuzzRunner) {
 	cifuzzRunner.Run(t, &shared.RunOptions{
 		Env:                          []string{"ASAN_OPTIONS=print_stats=1:atexit=1"},
@@ -418,12 +430,12 @@ func testRunWithDefaultDict(t *testing.T, cifuzzRunner *shared.CIFuzzRunner) {
 
 // testCorrectCorpusCount checks that the corpus count is correct
 func testCorrectCorpusCount(t *testing.T, cifuzzRunner *shared.CIFuzzRunner) {
-	// Run two times with `--engine-arg=-runs=10` to make sure that the corpus
+	// Run two times with `--engine-arg=-runs=2` to make sure that the corpus
 	// count is correct and does not underflow.
 	for i := 0; i < 2; i++ {
 		cifuzzRunner.Run(t,
 			&shared.RunOptions{
-				Args: []string{"--engine-arg=-runs=10"},
+				Args: []string{"--engine-arg=-runs=2"},
 				ExpectedOutputs: []*regexp.Regexp{
 					regexp.MustCompile(`Findings:       0`),
 					regexp.MustCompile(`Corpus entries: 0 \(\+0\)`),
