@@ -14,26 +14,41 @@ import (
 )
 
 func main() {
-
 	flags := pflag.NewFlagSet("updater", pflag.ExitOnError)
-	deps := flags.String("dependency", "", "which dependency to update eg. gradle-plugin, jazzer, jazzerjs")
+	dep := flags.String("dependency", "", "which dependency to update eg. gradle-plugin, jazzer, jazzerjs")
 	versionFlag := flags.String("version", "", "target version to update to, for example 1.2.3")
-
 	handleErr(flags.Parse(os.Args))
 
-	var targetVersion string
-	if *versionFlag == "" {
-		log.Infof("Search for latest version of %s", *deps)
-		targetVersion = findLatestVersion(*deps)
-	} else {
-		_, err := semver.NewVersion(*versionFlag)
-		handleErr(err)
-		targetVersion = *versionFlag
+	if *dep == "" && *versionFlag != "" {
+		handleErr(errors.New("version flag can only be used in combination with dependency flag"))
 	}
 
-	log.Infof("Updating %s to: %s", *deps, targetVersion)
+	var deps []string
+	if *dep == "" {
+		deps = []string{"gradle-plugin", "maven-extension", "jazzer", "jazzerjs"}
+	} else {
+		deps = []string{*dep}
+	}
 
-	switch *deps {
+	for _, dep := range deps {
+		updateDependencyForDep(dep, *versionFlag)
+	}
+}
+
+func updateDependencyForDep(dep string, version string) {
+	var targetVersion string
+	if version == "" {
+		log.Infof("Search for latest version of %s", dep)
+		targetVersion = findLatestVersion(dep)
+	} else {
+		_, err := semver.NewVersion(version)
+		handleErr(err)
+		targetVersion = version
+	}
+
+	log.Infof("Updating %s to: %s", dep, targetVersion)
+
+	switch dep {
 	case "gradle-plugin":
 		re := regexp.MustCompile(`("com.code-intelligence.cifuzz"\)? version ")(?P<version>\d+.\d+.\d+.*|dev)(")`)
 		paths := []string{
