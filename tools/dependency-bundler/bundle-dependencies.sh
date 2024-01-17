@@ -36,9 +36,9 @@ export COURSIER_CACHE="$COURSIER_CACHE"
 
 echo "INFO: Resolving dependencies"
 java -jar $COURSIER_JAR fetch \
-	"com.code-intelligence:jazzer-junit:0.23.0" \
-	"com.code-intelligence:cifuzz-maven-extension:1.2.0" \
-	"com.code-intelligence.cifuzz:com.code-intelligence.cifuzz.gradle.plugin:1.12.0"
+	"com.code-intelligence:jazzer-junit:0.24.2" \
+	"com.code-intelligence:cifuzz-maven-extension:1.3.0" \
+	"com.code-intelligence.cifuzz:com.code-intelligence.cifuzz.gradle.plugin:1.13.0"
 
 echo "INFO: Packaging dependencies"
 # Remove empty code-intelligence folders from repo1.maven.org cache,

@@ -41,7 +41,7 @@ To resolve CI Fuzz dependencies, also add the CI repository in your project's or
 Finally, add the CI Fuzz Gradle plugin to your build.gradle to enable fuzz testing:
 
     plugins {
-      id "com.code-intelligence.cifuzz" version "1.12.0"
+      id "com.code-intelligence.cifuzz" version "1.13.0"
     }
 
 Fuzz tests are executed with JUnit 5. If it is not already set up, the plugin will automatically add the required dependencies and configuration to your project.

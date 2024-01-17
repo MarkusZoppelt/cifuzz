@@ -107,7 +107,7 @@ var deps = Dependencies{
 	},
 	GradlePlugin: {
 		Key:        GradlePlugin,
-		MinVersion: *semver.MustParse("1.12.0"),
+		MinVersion: *semver.MustParse("1.13.0"),
 		GetVersion: gradlePluginVersion,
 		Installed: func(dep *Dependency, projectDir string) bool {
 			version, err := gradle.GetPluginVersion(projectDir)
@@ -198,7 +198,7 @@ var deps = Dependencies{
 	},
 	MavenExtension: {
 		Key:        MavenExtension,
-		MinVersion: *semver.MustParse("1.2.0"),
+		MinVersion: *semver.MustParse("1.3.0"),
 		GetVersion: mavenExtensionVersion,
 		Installed: func(dep *Dependency, projectDir string) bool {
 			version, err := maven.GetPluginVersion(projectDir)
