@@ -1,7 +1,7 @@
 {
 	"projects": [
 		{
-			"name": "projects/my_fuzz_test-bac40407",
+			"name": "my_fuzz_test-bac40407",
 			"display_name": "my_fuzz_test",
 			"location": {
 				"git_path": {}

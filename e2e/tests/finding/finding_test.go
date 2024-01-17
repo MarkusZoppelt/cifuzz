@@ -88,6 +88,31 @@ var findingTests = &[]e2e.TestCase{
 	},
 }
 
+var findingModeTests = &[]e2e.TestCase{
+	{
+		Description:  "finding cmd in local mode should not invoke CI Sense communication",
+		CIUser:       e2e.AnonymousCIUser,
+		Command:      "finding",
+		Args:         []string{"-v"},
+		SampleFolder: []string{"project-with-findings-and-error-details"},
+		Assert: func(t *testing.T, output e2e.CommandOutput) {
+			assert.NotContains(t, output.Stderr, "Sending HTTP request:")
+			assert.EqualValues(t, 0, output.ExitCode)
+		},
+	},
+	{
+		Description:  "finding cmd in remote mode should invoke CI Sense communication",
+		CIUser:       e2e.LoggedInCIUser,
+		Command:      "finding",
+		Args:         []string{"-v"},
+		SampleFolder: []string{"project-with-findings-and-error-details"},
+		Assert: func(t *testing.T, output e2e.CommandOutput) {
+			assert.Contains(t, output.Stderr, "Sending HTTP request:")
+			assert.EqualValues(t, 0, output.ExitCode)
+		},
+	},
+}
+
 func TestFindingWithoutConnection(t *testing.T) {
 	server := mockserver.New(t)
 	server.Handlers["/v1/projects"] = func(w http.ResponseWriter, req *http.Request) {
@@ -115,4 +140,11 @@ func TestFindingList(t *testing.T) {
 	server.Handlers["/v1/projects"] = mockserver.ReturnResponseIfValidToken(t, mockserver.ProjectsJSON)
 
 	e2e.RunTests(t, *findingTests, server)
+}
+
+func TestFindingLocalRemoteMode(t *testing.T) {
+	server := mockserver.New(t)
+	server.Handlers["/v1/projects"] = mockserver.ReturnResponseIfValidToken(t, mockserver.ProjectsJSON)
+
+	e2e.RunTests(t, *findingModeTests, server)
 }
