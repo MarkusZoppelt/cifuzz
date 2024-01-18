@@ -13,7 +13,7 @@ import (
 
 type Findings struct {
 	Findings []Finding `json:"findings"`
-	Links    []Link    `json:"links"`
+	Links    []Link    `json:"links,omitempty"`
 }
 
 type Finding struct {
@@ -27,18 +27,18 @@ type Finding struct {
 	FuzzTargetDisplayName string       `json:"fuzz_target_display_name,omitempty"`
 
 	// new with v3
-	JobNid           string       `json:"job_nid"`
-	Nid              string       `json:"nid"`
-	InputData        string       `json:"input_data"`
-	RunNid           string       `json:"run_nid"`
-	ErrorID          string       `json:"error_id"`
-	Logs             []string     `json:"logs"`
-	State            string       `json:"state"`
-	CreatedAt        string       `json:"created_at"`
-	FirstSeenFinding string       `json:"first_seen_finding"`
-	IssueTrackerLink string       `json:"issue_tracker_link"`
-	ProjectNid       string       `json:"project_nid"`
-	Stacktrace       []Stacktrace `json:"stacktrace"`
+	JobNid           string       `json:"job_nid,omitempty"`
+	Nid              string       `json:"nid,omitempty"`
+	InputData        string       `json:"input_data,omitempty"`
+	RunNid           string       `json:"run_nid,omitempty"`
+	ErrorID          string       `json:"error_id,omitempty"`
+	Logs             []string     `json:"logs,omitempty"`
+	State            string       `json:"state,omitempty"`
+	CreatedAt        string       `json:"created_at,omitempty"`
+	FirstSeenFinding string       `json:"first_seen_finding,omitempty"`
+	IssueTrackerLink string       `json:"issue_tracker_link,omitempty"`
+	ProjectNid       string       `json:"project_nid,omitempty"`
+	Stacktrace       []Stacktrace `json:"stacktrace,omitempty"`
 }
 
 type Stacktrace struct {
